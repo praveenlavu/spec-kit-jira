@@ -71,6 +71,7 @@ def test_a_changed_expectation_is_reported_as_a_difference(smoke, change):
 def test_the_rehearsal_files_hold_only_fictional_data():
     text = "\n".join(p.read_text(encoding="utf-8") for p in sorted(SMOKE.rglob("*")) if p.is_file() and p.suffix != ".pyc")
     assert set(re.findall(r"[\w.-]+\.atlassian\.net", text)) == {"example-site.atlassian.net"}
+    text = re.sub(r"git\+https://github\.com/[\w.-]+/[\w.-]+@[0-9a-f]{40}", "", text)  # the pinned install line is a URL, not an address
     assert set(re.findall(r"[\w.+-]+@[\w.-]+", text)) <= {"smoke@example.invalid"}
 
 
