@@ -27,7 +27,7 @@ jobs:
 
       # Installed BEFORE the code is fetched, from an empty folder, in isolated mode (-I): no file of the pull request can run here.
       - name: Install skj
-        run: cd "$RUNNER_TEMP" && python -I -m pip install "git+https://github.com/praveenlavu/spec-kit-jira@<COMMIT-SHA>"
+        run: cd "$RUNNER_TEMP" && python -I -m pip install "git+https://github.com/praveenlavu/spec-kit-jira@9921b04be758376c6af9f368e35fabdc371b05e1"
 
       - name: Get the code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2

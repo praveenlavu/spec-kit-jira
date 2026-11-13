@@ -140,7 +140,7 @@ def run_case(name, case, ran=None):
 # ---- the template cases (a to d): the `run:` steps of a ci/templates/ file, read from its YAML and run as a runner would ------------------
 
 INSTALL_STEP = "Install skj"  # run as written: `python -I -m pip install ...` reaches the stub pip below (no network)
-INSTALL_ARGS = ["install", "git+https://github.com/praveenlavu/spec-kit-jira@<COMMIT-SHA>"]  # the only pip command line the stub accepts: the templates' install line
+INSTALL_ARGS = ["install", "git+https://github.com/praveenlavu/spec-kit-jira@9921b04be758376c6af9f368e35fabdc371b05e1"]  # the only pip command line the stub accepts: the templates' install line
 PR_URL = "https://github.com/example-org/example-repo/pull/12"
 _EXPR = re.compile(r"\$\{\{\s*(.*?)\s*\}\}", re.S)
 _COND = re.compile(r"(env|vars|github\.event\.pull_request)\.(\w+) (==|!=) (?:'([^']*)'|(true|false))")
