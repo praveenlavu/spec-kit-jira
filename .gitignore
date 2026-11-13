@@ -1,0 +1,9 @@
+.superpowers/
+.venv/
+__pycache__/
+*.pyc
+.scrub-denylist
+.skj/
+*.egg-info/
+build/
+bundle/*.zip

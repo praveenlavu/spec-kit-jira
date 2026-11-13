@@ -1,0 +1,519 @@
+{
+  "g0": {
+    "title": "the gate in a shallow clone fails closed, in a full clone it answers",
+    "branch": "feature",
+    "base": "main",
+    "clones": {
+      "shallow": {
+        "depth": 1
+      },
+      "full": {}
+    },
+    "steps": [
+      {
+        "clone": "shallow",
+        "argv": [
+          "gate",
+          "1",
+          "--offline",
+          "--base",
+          "origin/main"
+        ],
+        "exit": 3,
+        "stderr_has": [
+          "in CI the target branch must be readable",
+          "fetch-depth: 0"
+        ]
+      },
+      {
+        "clone": "full",
+        "argv": [
+          "gate",
+          "1",
+          "--offline",
+          "--base",
+          "origin/main"
+        ],
+        "exit": 0,
+        "out": {
+          "blocking": false,
+          "ledger": "missing"
+        }
+      }
+    ]
+  },
+  "a": {
+    "title": "check-pull-request.yml: the gate runs on a full clone, blocks what it must, fails closed on a shallow one",
+    "template": "ci/templates/check-pull-request.yml",
+    "jobs": [
+      {
+        "title": "a key in the branch, full clone: the gate answers and passes",
+        "branch": "feature/SPK-1-members",
+        "exit": 0,
+        "ran": [
+          "Install skj",
+          "Find the story key",
+          "Check the pull request against the checklist",
+          "Show the result on the run page"
+        ],
+        "out_has": [
+          "Story key: SPK-1",
+          "\"blocking\": false"
+        ]
+      },
+      {
+        "title": "the key only in the title is found",
+        "branch": "feature/members",
+        "event": {
+          "title": "SPK-1 Add the members list"
+        },
+        "exit": 0,
+        "out_has": [
+          "Story key: SPK-1"
+        ]
+      },
+      {
+        "title": "no key anywhere: the job fails with a plain message",
+        "branch": "feature/members",
+        "event": {
+          "title": "Add the members list"
+        },
+        "exit": 1,
+        "out_has": [
+          "::error::Put the story key"
+        ]
+      },
+      {
+        "title": "a key of another project: skj refuses it",
+        "branch": "feature/OTHER-1-members",
+        "exit": 2,
+        "out_has": [
+          "not an issue number or a key of project SPK"
+        ]
+      },
+      {
+        "title": "strict main branch, no ledger: the gate blocks",
+        "branch": "feature/SPK-1-members",
+        "main_config": {
+          "site": "example-site.atlassian.net",
+          "project": "SPK",
+          "mode": "strict"
+        },
+        "exit": 1,
+        "out_has": [
+          "\"blocking\": true",
+          "strict mode blocks"
+        ]
+      },
+      {
+        "title": "fetch-depth 1 instead of 0: exit 3 with the fixed message",
+        "branch": "feature/SPK-1-members",
+        "fetch_depth": 1,
+        "exit": 3,
+        "out_has": [
+          "in CI the target branch must be readable",
+          "fetch-depth: 0"
+        ]
+      },
+      {
+        "title": "the optional Jira step runs instead of the offline one when SKJ_GATE_ONLINE is true",
+        "branch": "feature/SPK-1-members",
+        "vars": {
+          "SKJ_GATE_ONLINE": "true"
+        },
+        "exit": 0,
+        "ran": [
+          "Install skj",
+          "Find the story key",
+          "Check the pull request against the checklist and Jira",
+          "Show the result on the run page"
+        ]
+      },
+      {
+        "title": "pip.py, skj.py, sitecustomize.py, usercustomize.py and json.py planted in the pull request: none of them runs (strict main, no ledger: still blocks)",
+        "branch": "feature/SPK-1-members",
+        "plant": true,
+        "main_config": {
+          "site": "example-site.atlassian.net",
+          "project": "SPK",
+          "mode": "strict"
+        },
+        "exit": 1,
+        "out_has": [
+          "rehearsal pip: installed skj",
+          "\"blocking\": true"
+        ],
+        "absent": [
+          "planted-pip.py",
+          "planted-skj.py",
+          "planted-sitecustomize.py",
+          "planted-usercustomize.py",
+          "planted-json.py"
+        ]
+      }
+    ]
+  },
+  "b": {
+    "title": "check-branch-name.yml: a key of the project passes, no key or another project's key fails",
+    "template": "ci/templates/check-branch-name.yml",
+    "jobs": [
+      {
+        "title": "feature/SPK-1-members passes",
+        "branch": "feature/SPK-1-members",
+        "exit": 0,
+        "out_has": [
+          "Branch name is fine: SPK-1"
+        ]
+      },
+      {
+        "title": "no key fails",
+        "branch": "feature/members",
+        "exit": 1,
+        "out_has": [
+          "::error::The branch name needs a story key of project SPK"
+        ]
+      },
+      {
+        "title": "another project's key fails",
+        "branch": "feature/OTHER-1-members",
+        "exit": 1,
+        "out_has": [
+          "::error::The branch name needs a story key of project SPK"
+        ]
+      },
+      {
+        "title": "a lowercase key is no key",
+        "branch": "feature/spk-1-members",
+        "exit": 1,
+        "out_has": [
+          "::error::"
+        ]
+      },
+      {
+        "title": "the first key counts: another project's key first fails",
+        "branch": "feature/OTHER-2-SPK-1",
+        "exit": 1,
+        "out_has": [
+          "::error::"
+        ]
+      },
+      {
+        "title": "fetch-depth 1: the main branch's config cannot be read, a plain message",
+        "branch": "feature/SPK-1-members",
+        "fetch_depth": 1,
+        "exit": 1,
+        "out_has": [
+          "::error::Cannot read the project key"
+        ]
+      },
+      {
+        "title": "pip.py, skj.py, sitecustomize.py, usercustomize.py and json.py planted in the pull request: none of them runs",
+        "branch": "feature/OTHER-1-members",
+        "plant": true,
+        "exit": 1,
+        "out_has": [
+          "::error::The branch name needs"
+        ],
+        "absent": [
+          "planted-pip.py",
+          "planted-skj.py",
+          "planted-sitecustomize.py",
+          "planted-usercustomize.py",
+          "planted-json.py"
+        ]
+      }
+    ]
+  },
+  "c": {
+    "title": "link-pull-request.yml: one link and one comment, twice is a no-op, origin/HEAD unset fails closed, hostile titles stay text",
+    "template": "ci/templates/link-pull-request.yml",
+    "jobs": [
+      {
+        "title": "closed without merge: the job does not run",
+        "branch": "feature/SPK-1-members",
+        "event": {
+          "title": "Add the members list",
+          "merged": false
+        },
+        "exit": null,
+        "ran": [],
+        "jira": [
+          0,
+          0
+        ]
+      },
+      {
+        "title": "origin/HEAD not set (the step skipped): skj refuses, nothing written",
+        "branch": "feature/SPK-1-members",
+        "event": {
+          "title": "Add the members list"
+        },
+        "skip_steps": [
+          "Tell git which branch is the main branch"
+        ],
+        "exit": 1,
+        "out_has": [
+          "set origin/HEAD"
+        ],
+        "jira": [
+          0,
+          0
+        ]
+      },
+      {
+        "title": "merged: one link and one comment",
+        "branch": "feature/SPK-1-members",
+        "event": {
+          "title": "Add the members list"
+        },
+        "exit": 0,
+        "out_has": [
+          "linked: remote link",
+          "posted comment"
+        ],
+        "jira": [
+          1,
+          1
+        ]
+      },
+      {
+        "title": "the same run again: nothing more",
+        "branch": "feature/SPK-1-members",
+        "event": {
+          "title": "Add the members list"
+        },
+        "exit": 0,
+        "out_has": [
+          "nothing linked",
+          "nothing posted"
+        ],
+        "jira": [
+          1,
+          1
+        ]
+      },
+      {
+        "title": "no key in branch or title: a notice, the link step is skipped",
+        "branch": "feature/members",
+        "event": {
+          "title": "tidy up"
+        },
+        "exit": 0,
+        "ran": [
+          "Install skj",
+          "Find the story key",
+          "Tell git which branch is the main branch"
+        ],
+        "out_has": [
+          "::notice::No story key"
+        ],
+        "jira": [
+          1,
+          1
+        ]
+      },
+      {
+        "title": "a smart-commit title is refused: nothing written",
+        "branch": "feature/SPK-1-members",
+        "event": {
+          "title": "SPK-1 #done"
+        },
+        "exit": 2,
+        "out_has": [
+          "smart-commit shape"
+        ],
+        "jira": [
+          1,
+          1
+        ]
+      },
+      {
+        "title": "a title that looks like an option stays the title",
+        "branch": "feature/SPK-1-members",
+        "event": {
+          "title": "--apply"
+        },
+        "exit": 0,
+        "out_has": [
+          "\"title\":\"SPK-1: --apply\""
+        ],
+        "jira": [
+          1,
+          2
+        ]
+      },
+      {
+        "title": "shell text, a newline and a mention in the title: no command runs, the text is made inert",
+        "branch": "feature/SPK-1-members",
+        "event": {
+          "title": "one\n--apply @here $(touch \"$RUNNER_TEMP/pwned\") `touch \"$RUNNER_TEMP/pwned\"`"
+        },
+        "exit": 0,
+        "out_lacks": [
+          "@here"
+        ],
+        "absent": [
+          "pwned"
+        ],
+        "jira": [
+          1,
+          3
+        ]
+      },
+      {
+        "title": "a merged pull request from a fork (no secrets): a notice, nothing written, exit 0",
+        "branch": "feature/SPK-1-members",
+        "event": {
+          "title": "From a fork"
+        },
+        "secrets": {
+          "SKJ_EMAIL": "",
+          "SKJ_TOKEN": ""
+        },
+        "exit": 0,
+        "out_has": [
+          "::notice::No Jira login available"
+        ],
+        "jira": [
+          1,
+          3
+        ]
+      },
+      {
+        "title": "pip.py, skj.py, sitecustomize.py, usercustomize.py and json.py planted in the pull request: none of them runs",
+        "branch": "feature/SPK-1-members",
+        "plant": true,
+        "event": {
+          "title": "one\n--apply @here $(touch \"$RUNNER_TEMP/pwned\") `touch \"$RUNNER_TEMP/pwned\"`"
+        },
+        "exit": 0,
+        "out_has": [
+          "rehearsal pip: installed skj",
+          "nothing linked"
+        ],
+        "absent": [
+          "planted-pip.py",
+          "planted-skj.py",
+          "planted-sitecustomize.py",
+          "planted-usercustomize.py",
+          "planted-json.py"
+        ],
+        "jira": [
+          1,
+          3
+        ]
+      }
+    ]
+  },
+  "d": {
+    "title": "final-check.yml: no secrets in its job, so it runs; a leaked SKJ_TOKEN makes it refuse; a shallow clone fails closed",
+    "template": "ci/templates/final-check.yml",
+    "jobs": [
+      {
+        "title": "advisory project: both steps pass",
+        "branch": "feature/SPK-1-members",
+        "exit": 0,
+        "ran": [
+          "Install skj",
+          "Find the story key",
+          "Check the strict rules",
+          "Re-run the tests at each red and green commit"
+        ],
+        "out_has": [
+          "mode is advisory"
+        ]
+      },
+      {
+        "title": "strict main branch, no ledger: the strict rules fail",
+        "branch": "feature/SPK-1-members",
+        "main_config": {
+          "site": "example-site.atlassian.net",
+          "project": "SPK",
+          "mode": "strict"
+        },
+        "exit": 2,
+        "out_has": [
+          "ledger-missing"
+        ]
+      },
+      {
+        "title": "strict, clean environment: verify runs and judges (no credentials-in-env)",
+        "branch": "feature/SPK-1-members",
+        "main_config": {
+          "site": "example-site.atlassian.net",
+          "project": "SPK",
+          "mode": "strict"
+        },
+        "skip_steps": [
+          "Check the strict rules"
+        ],
+        "exit": 2,
+        "out_has": [
+          "ledger-missing"
+        ],
+        "out_lacks": [
+          "credentials-in-env"
+        ]
+      },
+      {
+        "title": "strict, SKJ_TOKEN leaked into the job: verify refuses before running anything",
+        "branch": "feature/SPK-1-members",
+        "main_config": {
+          "site": "example-site.atlassian.net",
+          "project": "SPK",
+          "mode": "strict"
+        },
+        "skip_steps": [
+          "Check the strict rules"
+        ],
+        "env": {
+          "SKJ_TOKEN": "leaked-on-purpose"
+        },
+        "exit": 2,
+        "out_has": [
+          "credentials-in-env"
+        ]
+      },
+      {
+        "title": "fetch-depth 1: fails closed with the fixed message",
+        "branch": "feature/SPK-1-members",
+        "main_config": {
+          "site": "example-site.atlassian.net",
+          "project": "SPK",
+          "mode": "strict"
+        },
+        "fetch_depth": 1,
+        "exit": 2,
+        "out_has": [
+          "in CI the target branch must be readable",
+          "fetch-depth: 0"
+        ]
+      },
+      {
+        "title": "pip.py, skj.py, sitecustomize.py, usercustomize.py and json.py planted in the pull request: none of them runs (strict: verify still judges)",
+        "branch": "feature/SPK-1-members",
+        "plant": true,
+        "main_config": {
+          "site": "example-site.atlassian.net",
+          "project": "SPK",
+          "mode": "strict"
+        },
+        "skip_steps": [
+          "Check the strict rules"
+        ],
+        "exit": 2,
+        "out_has": [
+          "rehearsal pip: installed skj",
+          "ledger-missing"
+        ],
+        "absent": [
+          "planted-pip.py",
+          "planted-skj.py",
+          "planted-sitecustomize.py",
+          "planted-usercustomize.py",
+          "planted-json.py"
+        ]
+      }
+    ]
+  }
+}

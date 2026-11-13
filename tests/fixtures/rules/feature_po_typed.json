@@ -1,0 +1,257 @@
+{
+ "type": "doc",
+ "version": 1,
+ "content": [
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Earn points when customers buy. "
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": []
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Business rules",
+     "marks": [
+      {
+       "type": "strong"
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": " "
+    }
+   ]
+  },
+  {
+   "type": "bulletList",
+   "content": [
+    {
+     "type": "listItem",
+     "content": [
+      {
+       "type": "paragraph",
+       "content": [
+        {
+         "type": "text",
+         "text": "Rule 1:",
+         "marks": [
+          {
+           "type": "strong"
+          }
+         ]
+        },
+        {
+         "type": "text",
+         "text": " Customers earn 1 point for every whole euro they spend. "
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Why:",
+     "marks": [
+      {
+       "type": "strong"
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": " Loyalty policy, March 2026 (marketing). "
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Example:",
+     "marks": [
+      {
+       "type": "strong"
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": " When a customer pays 24.80 euros, then they earn 24 points. "
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Owner:",
+     "marks": [
+      {
+       "type": "strong"
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": " Loyalty product owner "
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Status:",
+     "marks": [
+      {
+       "type": "strong"
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": " approved "
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": []
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Rule 2:",
+     "marks": [
+      {
+       "type": "strong"
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": " Gift card purchases never earn points. "
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Status:",
+     "marks": [
+      {
+       "type": "strong"
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": " draft "
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": []
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Rule 3:",
+     "marks": [
+      {
+       "type": "strong"
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": " Points can't pay for delivery. "
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Status ",
+     "marks": [
+      {
+       "type": "strong"
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": ": Approved "
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": []
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Rule:",
+     "marks": [
+      {
+       "type": "strong"
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": " Points earned in a returned order are removed. "
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Status:",
+     "marks": [
+      {
+       "type": "strong"
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": " approved "
+    }
+   ]
+  }
+ ]
+}

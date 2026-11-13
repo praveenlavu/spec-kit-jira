@@ -1,0 +1,55 @@
+{
+ "type": "doc",
+ "version": 1,
+ "content": [
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Members programme for Fabrikam shoppers. "
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": []
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Business rules",
+     "marks": [
+      {
+       "type": "strong"
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": " "
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Rule 1: Members must be 18 or older. "
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Status: approved "
+    }
+   ]
+  }
+ ]
+}

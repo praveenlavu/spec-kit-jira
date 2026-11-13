@@ -1,0 +1,249 @@
+{
+ "type": "doc",
+ "version": 1,
+ "content": [
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Earn points when customers buy (pasted from Word). "
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Business rules",
+     "marks": [
+      {
+       "type": "strong"
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": " "
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Rule 1:",
+     "marks": [
+      {
+       "type": "strong"
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": " Customers earn 1 point for every whole euro they spend. "
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Why:",
+     "marks": [
+      {
+       "type": "em"
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": " Loyalty policy, March 2026 (marketing). "
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Example:",
+     "marks": [
+      {
+       "type": "em"
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": " When a customer pays 24.80 euros, then they earn 24 points. "
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Owner:",
+     "marks": [
+      {
+       "type": "em"
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": " Loyalty product owner "
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Status:",
+     "marks": [
+      {
+       "type": "em"
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": " approved "
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Rule 2:",
+     "marks": [
+      {
+       "type": "strong"
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": " Gift card purchases never earn points. "
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "·    When the basket holds only a gift card, then no points are earned. "
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "·    When a gift card is bought with a normal item, then only the normal item earns points. "
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Status:",
+     "marks": [
+      {
+       "type": "em"
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": " draft "
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Rule 3 -",
+     "marks": [
+      {
+       "type": "strong"
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": " Points expire 12 months after they are earned.​ "
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Status:",
+     "marks": [
+      {
+       "type": "em"
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": " approved "
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Rule 4:",
+     "marks": [
+      {
+       "type": "strong"
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": " Points can't pay for delivery. "
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Status :",
+     "marks": [
+      {
+       "type": "em"
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": " Approved "
+    }
+   ]
+  }
+ ]
+}

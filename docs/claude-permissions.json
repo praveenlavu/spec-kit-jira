@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Bash(skj get:*)",
+      "Bash(skj comments:*)",
+      "Bash(skj dod seed:*)",
+      "Bash(skj questions:*)",
+      "Bash(skj decisions:*)",
+      "Bash(skj rules:*)",
+      "Bash(skj gate:*)",
+      "Bash(skj status:*)",
+      "Bash(skj stack show:*)",
+      "Bash(skj stack detect:*)",
+      "Bash(skj strict check:*)",
+      "Bash(skj strict mode:*)",
+      "Bash(skj kits verify:*)",
+      "Bash(skj calibrate:*)",
+      "Bash(skj branch:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git status:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git symbolic-ref:*)",
+      "Bash(git switch:*)",
+      "Bash(.specify/scripts/bash/check-prerequisites.sh:*)",
+      "Bash(.specify/scripts/bash/setup-plan.sh:*)",
+      "Bash(.specify/scripts/bash/setup-tasks.sh:*)"
+    ],
+    "deny": [
+      "Bash(skj questions * --apply*)",
+      "Bash(skj questions --apply*)",
+      "Bash(skj decisions * --post*)",
+      "Bash(skj decisions --post*)",
+      "Bash(skj decisions * --resolve*)",
+      "Bash(skj decisions --resolve*)",
+      "Bash(git push:*)"
+    ]
+  }
+}

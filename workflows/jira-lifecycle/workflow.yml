@@ -1,0 +1,486 @@
+schema_version: "1.0"
+workflow:
+  id: "jira-lifecycle"
+  name: "Spec Kit lifecycle for Jira"
+  version: "0.1.0"
+  author: "praveenlavu"
+  description: "Jira story to an open PR: spec, plan, tasks, push, implement, gate, review, PR. Every Jira or PR change is preview, human gate, apply. The story closes after merge."
+
+requires:
+  speckit_version: ">=1.2.1"
+  integrations:
+    # Advisory, non-exhaustive hint (the same list as upstream's speckit workflow); the workflow
+    # runs on any integration the project was initialized with.
+    any:
+      - "alquimia"
+      - "claude"
+      - "copilot"
+      - "gemini"
+      - "opencode"
+
+inputs:
+  issue_number:
+    type: number
+    required: true
+    prompt: "Jira issue number: the digits after the project key (12 for SPK-12); skj adds the project key from skj.config.json"
+  integration:
+    type: string
+    default: "auto"
+    prompt: "Integration to use (e.g. claude, copilot, gemini; 'auto' uses the project's initialized integration)"
+  review_model:
+    type: string
+    default: ""
+    prompt: "Model for the review step (empty = the integration's default). Recommended: a different model from the one that implemented, e.g. a stronger one; it feeds only the review step"
+  verdict_review_spec:
+    type: string
+    enum: ["", "approve", "reject"]
+    default: ""
+    prompt: "Verdict for gate review-spec supplied by `skj approvals sync --resume` (leave empty: the gate asks at a terminal or pauses)"
+  verdict_approve_questions:
+    type: string
+    enum: ["", "approve", "reject"]
+    default: ""
+    prompt: "Verdict for gate approve-questions supplied by `skj approvals sync --resume` (leave empty: the gate asks at a terminal or pauses)"
+  verdict_approve_plan_questions:
+    type: string
+    enum: ["", "approve", "reject"]
+    default: ""
+    prompt: "Verdict for gate approve-plan-questions supplied by `skj approvals sync --resume` (leave empty: the gate asks at a terminal or pauses)"
+  verdict_wait_po_answers:
+    type: string
+    enum: ["", "approve", "reject"]
+    default: ""
+    prompt: "Verdict for gate wait-po-answers supplied by `skj approvals sync --resume` (leave empty: the gate asks at a terminal or pauses)"
+  verdict_approve_answers_questions:
+    type: string
+    enum: ["", "approve", "reject"]
+    default: ""
+    prompt: "Verdict for gate approve-answers-questions supplied by `skj approvals sync --resume` (leave empty: the gate asks at a terminal or pauses)"
+  verdict_review_plan:
+    type: string
+    enum: ["", "approve", "reject"]
+    default: ""
+    prompt: "Verdict for gate review-plan supplied by `skj approvals sync --resume` (leave empty: the gate asks at a terminal or pauses)"
+  verdict_approve_push:
+    type: string
+    enum: ["", "approve", "reject"]
+    default: ""
+    prompt: "Verdict for gate approve-push supplied by `skj approvals sync --resume` (leave empty: the gate asks at a terminal or pauses)"
+  verdict_approve_decisions:
+    type: string
+    enum: ["", "approve", "reject"]
+    default: ""
+    prompt: "Verdict for gate approve-decisions supplied by `skj approvals sync --resume` (leave empty: the gate asks at a terminal or pauses)"
+  verdict_approve_sync:
+    type: string
+    enum: ["", "approve", "reject"]
+    default: ""
+    prompt: "Verdict for gate approve-sync supplied by `skj approvals sync --resume` (leave empty: the gate asks at a terminal or pauses)"
+  verdict_review_review:
+    type: string
+    enum: ["", "approve", "reject"]
+    default: ""
+    prompt: "Verdict for gate review-review supplied by `skj approvals sync --resume` (leave empty: the gate asks at a terminal or pauses)"
+  verdict_approve_pr:
+    type: string
+    enum: ["", "approve", "reject"]
+    default: ""
+    prompt: "Verdict for gate approve-pr supplied by `skj approvals sync --resume` (leave empty: the gate asks at a terminal or pauses)"
+  verdict_wait_po_validation:
+    type: string
+    enum: ["", "approve", "reject"]
+    default: ""
+    prompt: "Verdict for gate wait-po-validation supplied by `skj approvals sync --resume` (leave empty: the gate asks at a terminal or pauses)"
+
+# SECURITY: a shell step's `run` is template-substituted text run with shell=True and the whole process environment. The ONLY
+# value ever substituted into a `run` is inputs.issue_number, a `number` input the engine coerces to an int or float: `specify
+# workflow run` refuses anything else before the first step, and so does a resume that passes any `--input` (the engine then
+# re-checks every input; `skj approvals sync --resume` always passes them). A PLAIN `specify workflow resume <run>` takes the
+# inputs from the run's state.json WITHOUT re-checking them: resume by hand as `specify workflow resume <run> --input
+# issue_number=<n>`. skj builds <project>-<n> from the number and refuses 0, negatives and fractions (exit 2).
+# Never a verdict, the model, the integration or a step output. tests/test_workflow.py enforces it.
+#
+# Each command step runs the agent once with no chance to reply, so every Jira- or PR-changing step is a triplet:
+# shell preview (--plan-out) -> gate (show_file) -> shell --apply --expect-plan with the same flags. The apply re-renders the plan
+# and refuses (exit 2, fresh plan in <file>.new) unless it is exactly what the gate showed. Each triplet sits in a do-while capped
+# at ONE pass (max_iterations: 1, so the loop `condition` is never evaluated; it stays the plan-changed test of its own apply):
+# a refused apply (exit 2 with <file>.new) ends its step cleanly and the *-applied step after it stops the run (exit 1: start a
+# new run). A second pass must never happen because a verdict supplied with `--input` stays set and would pass a second gate with
+# no prompt, applying a plan no human saw. A plain `specify workflow resume` re-runs only the failed step, so it can never apply
+# the new plan. Plan files are approvals.APPLY_FILES (`.skj/plan-*.md`).
+# Command steps get `--workflow` so they never write Jira and never stop to ask: open decisions go to ledger section 2.
+# Each command step is followed by `<id>-done` (`skj dod check <n> --after <step>`): the agent runs headless (`claude -p` exits 0
+# when it stops on a refused tool call), so the run stops unless the step left its product, committed (D-025; a review that
+# did not run stops it before review-review, D-028). The permission list the agent needs is in the README.
+# Every command step sets `integration: "{{ inputs.integration }}"` (without it the engine fails with "integration None").
+# Comment approval (EXPERIMENTAL; approval "comment" on the target branch): every gate has its own `verdict_<gate>` input, empty by
+# default (the gate asks at a terminal, and without one it pauses). `skj approvals sync <run> --resume` sets the paused gate's
+# input and resets the other eleven. The five review and wait gates are followed by `skj approvals check <n> --gate <g>` (a no-op
+# in terminal mode); the seven write gates are checked by the apply right after them. Review gates hash the artifacts as
+# COMMITTED at HEAD: commit the spec, plan and ledger before approving.
+# Terminal mode: `--input verdict_<gate>=approve` given to `specify workflow run` (or a resume) PRE-APPROVES that gate with no human
+# seeing it (engine behaviour, as in the fork). An agent that starts the workflow could approve itself this way, so an agent must
+# NEVER pass a verdict input (HITL rules); comment mode is still enforced at the apply and by `skj approvals check`.
+# The run ends at the open PR: closing happens after merge (`skj done`).
+steps:
+  - id: pull
+    command: speckit.jira-lifecycle.pull
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "{{ inputs.issue_number }} --workflow"
+
+  - id: pull-done
+    type: shell
+    run: "skj dod check {{ inputs.issue_number }} --after pull"
+
+  # Strict mode: stop unless the stack profile is approved and covers every detected root. Advisory: exit 0 with notes.
+  - id: stack-check
+    type: shell
+    run: "skj stack show --check"
+
+  - id: review-spec
+    type: gate
+    verdict_input: verdict_review_spec
+    message: "Review the spec, the open questions in ledger section 2 and the ledger's 'Needs human decision' list before approving. They are judged as committed at HEAD (comment approval hashes the committed files): commit them first."
+    options: [approve, reject]
+    on_reject: abort
+
+  - id: check-review-spec
+    type: shell
+    run: "skj approvals check {{ inputs.issue_number }} --gate review-spec"
+
+  - id: questions-loop
+    type: do-while
+    max_iterations: 1
+    condition: "{{ steps.questions-apply.output.stderr | contains('plan changed since approval') }}"
+    steps:
+      - id: questions-preview
+        type: shell
+        run: "skj questions {{ inputs.issue_number }} --post --plan-out .skj/plan-questions.md"
+
+      - id: approve-questions
+        type: gate
+        verdict_input: verdict_approve_questions
+        message: "Approve posting these open questions to the story in Jira as the plan file below shows (the gate shows at most 200 lines). If the preview starts with ⚠, open the file and read it in full before approving. If it says nothing to post, approve to continue."
+        show_file: .skj/plan-questions.md
+        options: [approve, reject]
+        on_reject: abort
+
+      - id: questions-apply
+        type: shell
+        run: "skj questions {{ inputs.issue_number }} --post --apply --expect-plan .skj/plan-questions.md || { [ $? -eq 2 ] && [ -e .skj/plan-questions.md.new ]; }"
+
+  - id: questions-applied
+    type: shell
+    run: "if [ -e .skj/plan-questions.md.new ]; then echo 'skj: the questions plan changed after approval; start a new run' >&2; exit 1; fi"
+
+  - id: plan
+    command: speckit.jira-lifecycle.plan
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "{{ inputs.issue_number }} --workflow"
+
+  - id: plan-done
+    type: shell
+    run: "skj dod check {{ inputs.issue_number }} --after plan"
+
+  - id: plan-questions-loop
+    type: do-while
+    max_iterations: 1
+    condition: "{{ steps.plan-questions-apply.output.stderr | contains('plan changed since approval') }}"
+    steps:
+      - id: plan-questions-preview
+        type: shell
+        run: "skj questions {{ inputs.issue_number }} --post --plan-out .skj/plan-questions-after-plan.md"
+
+      - id: approve-plan-questions
+        type: gate
+        verdict_input: verdict_approve_plan_questions
+        message: "Approve posting the questions the plan raised to the story in Jira as the plan file below shows (the gate shows at most 200 lines). If the preview starts with ⚠, open the file and read it in full before approving. If it says nothing to post, approve to continue."
+        show_file: .skj/plan-questions-after-plan.md
+        options: [approve, reject]
+        on_reject: abort
+
+      - id: plan-questions-apply
+        type: shell
+        run: "skj questions {{ inputs.issue_number }} --post --apply --expect-plan .skj/plan-questions-after-plan.md || { [ $? -eq 2 ] && [ -e .skj/plan-questions-after-plan.md.new ]; }"
+
+  - id: plan-questions-applied
+    type: shell
+    run: "if [ -e .skj/plan-questions-after-plan.md.new ]; then echo 'skj: the plan questions plan changed after approval; start a new run' >&2; exit 1; fi"
+
+  # The engine cannot loop back, so the wait is a gate and the answers are read by a second plan run.
+  - id: wait-po-answers
+    type: gate
+    verdict_input: verdict_wait_po_answers
+    message: "The questions the plan raised are posted on the story. Approve once the product owner has answered them. Approving without their answers accepts the plan's stated assumptions: the next step reads the replies into the ledger, records each question still unanswered as `assumed: <assumption>` (ticked, and kept in ledger section 2 for review) and revises the plan. Reject to stop."
+    options: [approve, reject]
+    on_reject: abort
+
+  - id: check-wait-po-answers
+    type: shell
+    run: "skj approvals check {{ inputs.issue_number }} --gate wait-po-answers"
+
+  - id: sync-po-answers
+    type: shell
+    run: "skj questions {{ inputs.issue_number }} --sync --if-comment-mode"
+
+  - id: plan-with-answers
+    command: speckit.jira-lifecycle.plan
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "{{ inputs.issue_number }} --workflow --close-assumed"
+
+  - id: plan-with-answers-done
+    type: shell
+    run: "skj dod check {{ inputs.issue_number }} --after plan"
+
+  - id: answers-questions-loop
+    type: do-while
+    max_iterations: 1
+    condition: "{{ steps.answers-questions-apply.output.stderr | contains('plan changed since approval') }}"
+    steps:
+      - id: answers-questions-preview
+        type: shell
+        run: "skj questions {{ inputs.issue_number }} --post --plan-out .skj/plan-questions-after-answers.md"
+
+      - id: approve-answers-questions
+        type: gate
+        verdict_input: verdict_approve_answers_questions
+        message: "Approve posting the questions the revised plan raised to the story in Jira as the plan file below shows (the gate shows at most 200 lines). They stay open in ledger section 2 until the product owner answers, and the story cannot be closed before then. If the preview starts with ⚠, open the file and read it in full before approving. If it says nothing to post, approve to continue."
+        show_file: .skj/plan-questions-after-answers.md
+        options: [approve, reject]
+        on_reject: abort
+
+      - id: answers-questions-apply
+        type: shell
+        run: "skj questions {{ inputs.issue_number }} --post --apply --expect-plan .skj/plan-questions-after-answers.md || { [ $? -eq 2 ] && [ -e .skj/plan-questions-after-answers.md.new ]; }"
+
+  - id: answers-questions-applied
+    type: shell
+    run: "if [ -e .skj/plan-questions-after-answers.md.new ]; then echo 'skj: the answers questions plan changed after approval; start a new run' >&2; exit 1; fi"
+
+  - id: review-plan
+    type: gate
+    verdict_input: verdict_review_plan
+    message: "Review the plan, the spec, the open questions in ledger section 2 and the ledger's 'Needs human decision' list before approving. They are judged as committed at HEAD (comment approval hashes the committed files and refuses while one has uncommitted changes): commit them first; the question steps above may have left the ledger's `Questions posted:` line uncommitted."
+    options: [approve, reject]
+    on_reject: abort
+
+  - id: check-review-plan
+    type: shell
+    run: "skj approvals check {{ inputs.issue_number }} --gate review-plan"
+
+  - id: tasks
+    command: speckit.jira-lifecycle.tasks
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "{{ inputs.issue_number }}"
+
+  - id: tasks-done
+    type: shell
+    run: "skj dod check {{ inputs.issue_number }} --after tasks"
+
+  - id: push-loop
+    type: do-while
+    max_iterations: 1
+    condition: "{{ steps.push-apply.output.stderr | contains('plan changed since approval') }}"
+    steps:
+      - id: push-preview
+        type: shell
+        run: "skj push {{ inputs.issue_number }} --plan-out .skj/plan-push.md"
+
+      - id: approve-push
+        type: gate
+        verdict_input: verdict_approve_push
+        message: "Approve creating these subtasks under the story in Jira and firing the transitions the plan file below shows (the gate shows at most 200 lines). If the preview starts with ⚠, open the file and read it in full before approving."
+        show_file: .skj/plan-push.md
+        options: [approve, reject]
+        on_reject: abort
+
+      - id: push-apply
+        type: shell
+        run: "skj push {{ inputs.issue_number }} --apply --expect-plan .skj/plan-push.md || { [ $? -eq 2 ] && [ -e .skj/plan-push.md.new ]; }"
+
+  - id: push-applied
+    type: shell
+    run: "if [ -e .skj/plan-push.md.new ]; then echo 'skj: the push plan changed after approval; start a new run' >&2; exit 1; fi"
+
+  # Strict mode: refuses (exit 2, findings on stdout) before implement unless spec, plan, tasks, the subtasks and the answered
+  # questions are in order. Advisory mode: a no-op (exit 0, "mode is advisory").
+  - id: strict-check-implement
+    type: shell
+    run: "skj strict check {{ inputs.issue_number }} --phase implement"
+
+  - id: implement
+    command: speckit.jira-lifecycle.implement
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "{{ inputs.issue_number }} --workflow"
+
+  - id: implement-done
+    type: shell
+    run: "skj dod check {{ inputs.issue_number }} --after implement"
+
+  # The decisions implement (and plan) recorded in dod/Decisions_<KEY>.md, posted as ONE new comment. `--if-any`: no decisions file
+  # is a no-op (the preview says nothing to post).
+  - id: decisions-loop
+    type: do-while
+    max_iterations: 1
+    condition: "{{ steps.decisions-apply.output.stderr | contains('plan changed since approval') }}"
+    steps:
+      - id: decisions-preview
+        type: shell
+        run: "skj decisions {{ inputs.issue_number }} --post --if-any --plan-out .skj/plan-decisions.md"
+
+      - id: approve-decisions
+        type: gate
+        verdict_input: verdict_approve_decisions
+        message: "Approve posting these development decisions and assumptions to the story in Jira as one new comment. The plan file is shown below (the gate shows at most 200 lines). If the preview starts with ⚠, open the file and read it in full before approving. If it says nothing to post, approve to continue."
+        show_file: .skj/plan-decisions.md
+        options: [approve, reject]
+        on_reject: abort
+
+      - id: decisions-apply
+        type: shell
+        run: "skj decisions {{ inputs.issue_number }} --post --if-any --apply --expect-plan .skj/plan-decisions.md || { [ $? -eq 2 ] && [ -e .skj/plan-decisions.md.new ]; }"
+
+  - id: decisions-applied
+    type: shell
+    run: "if [ -e .skj/plan-decisions.md.new ]; then echo 'skj: the decisions plan changed after approval; start a new run' >&2; exit 1; fi"
+
+  # Strict mode: runs the tests at every red and green commit and records the result in ledger section 4 (a local write); exit 2
+  # stops the run before any subtask state is synced. Advisory mode: a no-op. It needs no Jira access, and it sees the run's REAL
+  # environment on purpose: the PR's test command runs below it and could read every ancestor's environment (the engine's `sh -c`
+  # and `specify` hold the full environment; /proc/<ppid>/environ on Linux, `ps -E` on macOS), so scrubbing only this step would
+  # hide credentials from verify's check, not from the tests. `skj strict verify` REFUSES (finding credentials-in-env, names only)
+  # while any credential-like variable (SKJ_*, *_TOKEN, *_KEY, ...) is set. Start the run from a shell that holds no credential
+  # variables (for example `env -u SKJ_TOKEN -u SKJ_EMAIL -u GH_TOKEN ... specify workflow run ...`); verify refuses otherwise by design.
+  # `timeout: 7200`: the engine's shell default is 300 s, which would kill the test runs mid-way.
+  - id: strict-verify
+    type: shell
+    timeout: 7200
+    run: "skj strict verify {{ inputs.issue_number }}"
+
+  - id: sync-loop
+    type: do-while
+    max_iterations: 1
+    condition: "{{ steps.sync-apply.output.stderr | contains('plan changed since approval') }}"
+    steps:
+      - id: sync-preview
+        type: shell
+        run: "skj push {{ inputs.issue_number }} --plan-out .skj/plan-sync.md"
+
+      - id: approve-sync
+        type: gate
+        verdict_input: verdict_approve_sync
+        message: "Approve the subtask transitions for the tasks ticked during implement, as the plan file below shows (the gate shows at most 200 lines). If the preview starts with ⚠, open the file and read it in full before approving."
+        show_file: .skj/plan-sync.md
+        options: [approve, reject]
+        on_reject: abort
+
+      - id: sync-apply
+        type: shell
+        run: "skj push {{ inputs.issue_number }} --apply --expect-plan .skj/plan-sync.md || { [ $? -eq 2 ] && [ -e .skj/plan-sync.md.new ]; }"
+
+  - id: sync-applied
+    type: shell
+    run: "if [ -e .skj/plan-sync.md.new ]; then echo 'skj: the sync plan changed after approval; start a new run' >&2; exit 1; fi"
+
+  # The gate command runs `skj gate` and appends the result to ledger section 4 (a shell step could not).
+  - id: gate
+    command: speckit.jira-lifecycle.gate
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "{{ inputs.issue_number }} --workflow"
+
+  - id: gate-done
+    type: shell
+    run: "skj dod check {{ inputs.issue_number }} --after gate"
+
+  # Exit 1 (blocking) and exit 3 (invalid skj.config.json) halt the run; other exits do not (missing info never blocks).
+  - id: gate-check
+    type: shell
+    # bash, not the engine's sh (arrays are bash-only); a read loop, not mapfile, so macOS bash 3.2 works.
+    # File names go through a NUL-delimited file, never into the script text. A failed diff runs the
+    # gate without --changed (missing info never blocks).
+    run: |
+      bash <<'EOF'
+      base=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)
+      args=()
+      tmp=$(mktemp) && git diff -z --name-only "$base...HEAD" > "$tmp" 2>/dev/null && ok=1 || ok=
+      if [ -n "$ok" ]; then
+        while IFS= read -r -d '' f; do args+=("./$f"); done < "$tmp"  # ./ prefix: a name like -x must not parse as an option
+        [ "${#args[@]}" -eq 0 ] || args=(--changed "${args[@]}")
+      else
+        echo "skj: changed files unavailable - assertion check skipped" >&2
+      fi
+      rm -f "$tmp"
+      code=0
+      skj gate {{ inputs.issue_number }} --src . --base "$base" "${args[@]}" > /dev/null < /dev/null || code=$?
+      [ "$code" -ne 1 ] && [ "$code" -ne 3 ]
+      EOF
+
+  - id: review
+    command: speckit.jira-lifecycle.review
+    integration: "{{ inputs.integration }}"
+    model: "{{ inputs.review_model }}"
+    input:
+      args: "{{ inputs.issue_number }} --workflow"
+
+  - id: review-done
+    type: shell
+    run: "skj dod check {{ inputs.issue_number }} --after review"
+
+  - id: review-review
+    type: gate
+    verdict_input: verdict_review_review
+    message: "Review the findings logged in the ledger before opening the PR. Reject if implement reported INCOMPLETE tasks: the run aborts and cannot be resumed. The ledger is judged as committed at HEAD (comment approval hashes section 4 and the HEAD commit): commit it first."
+    options: [approve, reject]
+    on_reject: abort
+
+  - id: check-review-review
+    type: shell
+    run: "skj approvals check {{ inputs.issue_number }} --gate review-review"
+
+  - id: pr-loop
+    type: do-while
+    max_iterations: 1
+    condition: "{{ steps.pr-apply.output.stderr | contains('plan changed since approval') }}"
+    steps:
+      # The CLI writes the preview the gate shows, with pr-apply's own flags (--push too).
+      - id: pr-preview
+        type: shell
+        run: "skj pr create {{ inputs.issue_number }} --push --plan-out .skj/plan-pr.md"
+
+      - id: approve-pr
+        type: gate
+        verdict_input: verdict_approve_pr
+        message: "Approve pushing the head branch and opening this pull request. The plan file is shown below (the gate shows at most 200 lines). If the preview starts with ⚠, open the file and read it in full before approving."
+        show_file: .skj/plan-pr.md
+        options: [approve, reject]
+        on_reject: abort
+
+      - id: pr-apply
+        type: shell
+        run: "skj pr create {{ inputs.issue_number }} --push --apply --expect-plan .skj/plan-pr.md || { [ $? -eq 2 ] && [ -e .skj/plan-pr.md.new ]; }"
+
+  - id: pr-applied
+    type: shell
+    run: "if [ -e .skj/plan-pr.md.new ]; then echo 'skj: the pr plan changed after approval; start a new run' >&2; exit 1; fi"
+
+  # The product owner answers the posted decisions in the story's comments; a human records each verdict. This gate ends the run.
+  - id: wait-po-validation
+    type: gate
+    verdict_input: verdict_wait_po_validation
+    message: "Approve once the product owner has validated or rejected the posted decisions. Terminal mode: record each verdict first with `skj decisions <n> --resolve` in your own terminal. Comment mode (approvers configured; `--resolve` is refused): the approvers' `/approve D<n>` and `/reject D<n>` comments are recorded by `skj decisions <n> --sync` in the next step. Either way, commit and push the recorded lines to the PR branch before the merge. In strict mode `skj done` refuses while any is open; if nothing was posted just approve."
+    options: [approve, reject]
+    on_reject: abort
+
+  - id: sync-po-validation
+    type: shell
+    run: "skj decisions {{ inputs.issue_number }} --sync --if-comment-mode"
+
+  - id: check-wait-po-validation
+    type: shell
+    run: "skj approvals check {{ inputs.issue_number }} --gate wait-po-validation"

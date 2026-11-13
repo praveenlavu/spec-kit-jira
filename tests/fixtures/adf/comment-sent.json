@@ -1,0 +1,129 @@
+{
+ "version": 1,
+ "type": "doc",
+ "content": [
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "[spec-kit-jira:questions] J0 fictional"
+    }
+   ]
+  },
+  {
+   "type": "heading",
+   "attrs": {
+    "level": 2
+   },
+   "content": [
+    {
+     "type": "text",
+     "text": "Open questions"
+    }
+   ]
+  },
+  {
+   "type": "bulletList",
+   "content": [
+    {
+     "type": "listItem",
+     "content": [
+      {
+       "type": "paragraph",
+       "content": [
+        {
+         "type": "text",
+         "text": "Q1: is the cap 10? _(open)_"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "type": "orderedList",
+   "content": [
+    {
+     "type": "listItem",
+     "content": [
+      {
+       "type": "paragraph",
+       "content": [
+        {
+         "type": "text",
+         "text": "first"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "type": "listItem",
+     "content": [
+      {
+       "type": "paragraph",
+       "content": [
+        {
+         "type": "text",
+         "text": "second"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "type": "codeBlock",
+   "attrs": {
+    "language": "text"
+   },
+   "content": [
+    {
+     "type": "text",
+     "text": "AC-1 -> tests/test_total.py::test_total"
+    }
+   ]
+  },
+  {
+   "type": "paragraph",
+   "content": [
+    {
+     "type": "text",
+     "text": "Ref "
+    },
+    {
+     "type": "text",
+     "text": "PR",
+     "marks": [
+      {
+       "type": "link",
+       "attrs": {
+        "href": "https://example.com/pr/1"
+       }
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": " and "
+    },
+    {
+     "type": "text",
+     "text": "code",
+     "marks": [
+      {
+       "type": "code"
+      }
+     ]
+    },
+    {
+     "type": "text",
+     "text": "."
+    }
+   ]
+  }
+ ]
+}

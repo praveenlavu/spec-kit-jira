@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0",
+  "workflows": {
+    "jira-lifecycle": {
+      "author": "praveenlavu",
+      "description": "Jira story to an open PR: spec, plan, tasks, push, implement, gate, review, PR. Every Jira or PR change is preview, human gate, apply. The story closes after merge.",
+      "id": "jira-lifecycle",
+      "license": "MIT",
+      "name": "Spec Kit lifecycle for Jira",
+      "repository": "https://github.com/praveenlavu/spec-kit-jira",
+      "requires": {
+        "integrations": {
+          "any": [
+            "alquimia",
+            "claude",
+            "copilot",
+            "gemini",
+            "opencode"
+          ]
+        },
+        "speckit_version": ">=1.2.1"
+      },
+      "tags": [
+        "jira",
+        "issue-tracking",
+        "hitl",
+        "workflow",
+        "governance"
+      ],
+      "url": "https://github.com/praveenlavu/spec-kit-jira/releases/download/v0.1.0/jira-lifecycle-workflow.zip",
+      "version": "0.1.0"
+    }
+  }
+}

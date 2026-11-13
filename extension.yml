@@ -1,0 +1,83 @@
+schema_version: "1.0"
+
+extension:
+  id: "jira-lifecycle"
+  name: "Spec Kit lifecycle for Jira"
+  version: "0.1.0"
+  description: "A Jira story to Done through Spec Kit, with a human sign-off before every Jira or PR write."
+  author: "praveenlavu"
+  repository: "https://github.com/praveenlavu/spec-kit-jira"
+  license: "MIT"
+  homepage: "https://github.com/praveenlavu/spec-kit-jira"
+
+requires:
+  speckit_version: ">=1.2.1"
+  tools:
+    - name: "skj"
+      version: ">=0.1.0"
+      required: true
+    - name: "git"
+      required: true
+    - name: "gh"
+      required: false
+
+provides:
+  commands:
+    - name: "speckit.jira-lifecycle.setup"
+      file: "commands/setup.md"
+      description: "Check tools, write skj.config.json, check the Jira connection, and confirm which kit runs each phase."
+    - name: "speckit.jira-lifecycle.constitution"
+      file: "commands/constitution.md"
+      description: "Append the Jira and human-in-the-loop articles to the project constitution without replacing it."
+    - name: "speckit.jira-lifecycle.pull"
+      file: "commands/pull.md"
+      description: "Turn a Jira story into a spec and a DoD ledger, then commit both for the spec review."
+    - name: "speckit.jira-lifecycle.plan"
+      file: "commands/plan.md"
+      description: "Route the plan phase and require ledger section 2 to be filled before finishing."
+    - name: "speckit.jira-lifecycle.tasks"
+      file: "commands/tasks.md"
+      description: "Route the tasks phase and make sure a standard tasks.md exists for push."
+    - name: "speckit.jira-lifecycle.implement"
+      file: "commands/implement.md"
+      description: "Route the implement phase with TDD, keep the ledger AC table current, sync subtasks after approval."
+    - name: "speckit.jira-lifecycle.push"
+      file: "commands/push.md"
+      description: "Preview the subtasks for tasks.md, then create or update them after an explicit yes."
+    - name: "speckit.jira-lifecycle.gate"
+      file: "commands/gate.md"
+      description: "Run the DoD gate (traceability, assertions, AC drift, commits) and log the result in the ledger."
+    - name: "speckit.jira-lifecycle.review"
+      file: "commands/review.md"
+      description: "Review the branch diff on eight planes (AC fidelity in strict mode only), verify findings, log them in the ledger."
+    - name: "speckit.jira-lifecycle.pr"
+      file: "commands/pr.md"
+      description: "Preview the pull request skj builds from the ledger, then push and open it after an explicit yes."
+    - name: "speckit.jira-lifecycle.status"
+      file: "commands/status.md"
+      description: "Read-only report: which stage the story is at and the one command that moves it on."
+    - name: "speckit.jira-lifecycle.done"
+      file: "commands/done.md"
+      description: "Tick the DoD checklist with evidence, then attach the ledger and close the story after an explicit yes."
+    - name: "speckit.jira-lifecycle.stack"
+      file: "commands/stack.md"
+      description: "Detect the stack, then find a kit or research a cited draft profile for the human to approve; never installs a kit."
+
+hooks:
+  after_tasks:
+    command: "speckit.jira-lifecycle.push"
+    optional: true
+    prompt: "Create Jira subtasks for these tasks?"
+    description: "Preview the subtasks for the new tasks.md (nothing is written without a yes)"
+  after_implement:
+    command: "speckit.jira-lifecycle.gate"
+    optional: true
+    prompt: "Run the Definition-of-Done gate now?"
+    description: "Check AC traceability, assertions and AC drift after implementation (read-only)"
+
+tags:
+  - "jira"
+  - "issue-tracking"
+  - "hitl"
+  - "workflow"
+  - "governance"

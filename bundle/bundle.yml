@@ -1,0 +1,31 @@
+schema_version: "1.0"
+
+bundle:
+  id: "jira-lifecycle"
+  name: "Spec Kit lifecycle for Jira"
+  version: "0.1.0"
+  role: "developer"
+  description: "A Jira story to Done through Spec Kit, with a human sign-off before every Jira or PR write."
+  author: "praveenlavu"
+  license: "MIT"
+
+requires:
+  speckit_version: ">=1.2.1"
+  tools:
+    - "skj"
+    - "git"
+
+provides:
+  extensions:
+    - id: "jira-lifecycle"
+      version: "0.1.0"
+  workflows:
+    - id: "jira-lifecycle"
+      version: "0.1.0"
+
+tags:
+  - "jira"
+  - "issue-tracking"
+  - "hitl"
+  - "workflow"
+  - "governance"

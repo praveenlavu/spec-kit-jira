@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "skj"
+version = "0.1.0"
+license = {text = "MIT"}
+description = "Spec Kit lifecycle for Jira: CLI for tasks, DoD ledger, gate and task push"
+requires-python = ">=3.9"
+
+[project.scripts]
+skj = "skj.__main__:main"
+
+[project.optional-dependencies]
+dev = ["pytest", "pyyaml"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+skj = ["seeds/*.json", "templates/*.md", "golden/*.json"]
+
+[tool.pytest.ini_options]
+markers = ["rules: the business-rules tests (RU1 to RU3); `pytest -m rules` runs them alone"]

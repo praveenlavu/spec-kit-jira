@@ -1,0 +1,13 @@
+{
+  "site": "example-site.atlassian.net",
+  "project": "SPK",
+  "story_type": "Story",
+  "subtask_type": "Subtask",
+  "ac_heading": "Acceptance criteria",
+  "transitions": {"active": null, "done": null},
+  "branch_prefix": "feature/",
+  "labels": [],
+  "gate": {"tests": {}, "block": []},
+  "review_block_on": [],
+  "stack": {"kit": "", "phases": {}}
+}

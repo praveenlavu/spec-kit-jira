@@ -1,0 +1,50 @@
+{
+  "extensions": {
+    "jira-lifecycle": {
+      "author": "praveenlavu",
+      "changelog": "https://github.com/praveenlavu/spec-kit-jira/blob/v0.1.0/CHANGELOG.md",
+      "description": "A Jira story to Done through Spec Kit, with a human sign-off before every Jira or PR write.",
+      "documentation": "https://github.com/praveenlavu/spec-kit-jira",
+      "download_url": "https://github.com/praveenlavu/spec-kit-jira/archive/refs/tags/v0.1.0.zip",
+      "downloads": 0,
+      "homepage": "https://github.com/praveenlavu/spec-kit-jira",
+      "id": "jira-lifecycle",
+      "license": "MIT",
+      "name": "Spec Kit lifecycle for Jira",
+      "provides": {
+        "commands": 13,
+        "hooks": 2
+      },
+      "repository": "https://github.com/praveenlavu/spec-kit-jira",
+      "requires": {
+        "speckit_version": ">=1.2.1",
+        "tools": [
+          {
+            "name": "skj",
+            "required": true,
+            "version": ">=0.1.0"
+          },
+          {
+            "name": "git",
+            "required": true
+          },
+          {
+            "name": "gh",
+            "required": false
+          }
+        ]
+      },
+      "stars": 0,
+      "tags": [
+        "jira",
+        "issue-tracking",
+        "hitl",
+        "workflow",
+        "governance"
+      ],
+      "verified": false,
+      "version": "0.1.0"
+    }
+  },
+  "schema_version": "1.0"
+}

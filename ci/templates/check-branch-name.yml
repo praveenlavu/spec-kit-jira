@@ -1,0 +1,44 @@
+# What this does: fails a pull request when its branch name has no story key from your Jira project.
+# When to copy it: when every branch should be named like feature/PROJ-123-add-login. Copy it into .github/workflows/.
+# Safe by design: it needs no Jira login and no secrets. It only reads the branch name and your main branch's config file.
+name: Check the branch name
+
+on:
+  pull_request:
+    branches: [main]   # change "main" if your main branch has another name
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  branch-name:
+    name: Branch name has a story key
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Get the code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0   # the main branch is needed: its config file names your project
+          persist-credentials: false
+
+      - name: Check the branch name
+        env:   # the branch name is passed in as a variable, never pasted into the script
+          BRANCH: ${{ github.head_ref }}
+          BASE: ${{ github.base_ref }}
+          LC_ALL: C
+        run: |
+          # The project letters come from skj.config.json on the MAIN branch, which a pull request cannot change.
+          project=$(git show "origin/$BASE:skj.config.json" 2>/dev/null | python3 -I -c 'import json, sys; print(json.load(sys.stdin)["project"])' 2>/dev/null) || project=""
+          [[ "$project" =~ ^[A-Z][A-Z0-9_]{1,9}$ ]] || { echo "::error::Cannot read the project key from skj.config.json on $BASE (is fetch-depth 0?)."; exit 1; }
+          re='(^|[^A-Za-z0-9_])([A-Z][A-Z0-9_]{1,9}-[1-9][0-9]{0,9})([^A-Za-z0-9_]|$)'
+          if [[ "$BRANCH" =~ $re ]] && [ "${BASH_REMATCH[2]%-*}" = "$project" ]; then
+            echo "Branch name is fine: ${BASH_REMATCH[2]}"
+          else
+            echo "::error::The branch name needs a story key of project $project (the first key counts), like feature/$project-123-add-login."
+            exit 1
+          fi

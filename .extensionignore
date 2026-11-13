@@ -1,0 +1,12 @@
+# What `specify extension add` copies from this repository (Spec Kit reads this file with gitignore syntax and never copies it).
+# An allow-list: every root entry is excluded, then the extension's own files are taken back in. Tests, the CLI source, the
+# virtualenv, internal notes, scripts and local secrets never reach an installed project.
+/*
+!/extension.yml
+!/commands/
+!/rules/
+!/workflows/
+!/LICENSE
+__pycache__/
+*.pyc
+.DS_Store
