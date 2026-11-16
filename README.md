@@ -1,14 +1,18 @@
-# skj
+# spec-kit-jira
 
-**Your AI agent does the Jira grunt work. You press yes.**
+![Spec Kit for Jira: less board upkeep, more time to build](docs/assets/banner.svg)
 
-A community project for Jira Cloud, tested live on a real team-managed project: see [Status](#status).
+**Keep Jira in step with the work.**
+
+A Spec Kit add-on for Jira Cloud, with the `skj` command-line tool. Tested on a real team-managed project: see [Status](#status).
 
 [![Tests](https://github.com/praveenlavu/spec-kit-jira/actions/workflows/tests.yml/badge.svg)](https://github.com/praveenlavu/spec-kit-jira/actions/workflows/tests.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE) [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue)](docs/compatibility.md)
 
-`skj` takes a story in your Jira Cloud project to a pull request, one small step at a time, alongside [Spec Kit](https://github.com/github/spec-kit), which turns an idea into a spec, a plan and a task list.
-Your AI agent does the building; `skj` puts the subtasks, the pull request and the finished checklist on the story and leaves your time for the questions, the tangents and the yes.
-Nothing changes in Jira until you have seen the exact change and said yes.
+`skj` takes a story in your Jira Cloud project toward a pull request alongside [Spec Kit](https://github.com/github/spec-kit), which helps your agent write a spec, a plan and a task list.
+
+Your agent prepares subtasks, records questions and decisions, and assembles the delivery checklist. Your team spends less time copying tasks and writing handover notes, and more time deciding what to build.
+
+You review the exact change before the agent writes to Jira. A saved preview can be checked again before applying, so a changed plan needs another review.
 
 *Plain Python, standard library only. Your token stays out of the repository and is sent only to your own Jira site.*
 
@@ -28,7 +32,7 @@ Not in 0.1: company-managed projects, Jira Data Center and pull request hosts ot
 Example output, trimmed, with an invented story and invented tasks. First a preview, then the same command with your yes:
 
 ```text
-$ skj push PROJ-123
+$ skj push PROJ-123 --plan-out .skj/plan-push.md
 Plan for PROJ-123: push tasks.md to subtasks (label skj)
 create 3 · skip 0 · transition 0 · no-op 0 · refused 0 · orphan 0 · duplicate 0
 
@@ -39,7 +43,7 @@ create 3 · skip 0 · transition 0 · no-op 0 · refused 0 · orphan 0 · duplic
 | create | T003 | - | T003 Show a clear error message | - |
 dry run: nothing written; add --apply to write
 
-$ skj push PROJ-123 --apply
+$ skj push PROJ-123 --apply --expect-plan .skj/plan-push.md
 created T001 PROJ-124
 created T002 PROJ-125
 created T003 PROJ-126
@@ -47,18 +51,17 @@ created T003 PROJ-126
 
 ## Why you'll like it
 
-- 💬 **Open questions get asked before any code.** `skj` posts your open questions to the story and keeps each choice in a plain file, so your team weighs in early.
-- ✋ **You say yes, the agent builds.** Every change to Jira is shown to you first, and what you approve is exactly what gets written. If the plan changed in between, nothing is.
-- 🧪 **Every "done when" line gets a test.** Jira calls those lines acceptance criteria. A checklist ties each one to the test that proves it, and the gate, an automatic check before merge, reports any line without one.
-- 🛑 **When in doubt, it stops.** A changed plan, a missing approval or a setting it cannot trust ends the command with nothing written.
-- 📌 **The story shows the work, and you close it.** Subtasks, the pull request link and the finished checklist go on the story, and the branch name carries the story key. The workflow ends at the open pull request; `skj done` closes the story, after the merge and your yes.
+- **Less task copying.** Turns the plan’s task list into subtasks, with a preview of creates, updates and transitions.
+- **A clearer record of decisions.** Prepares questions for the story and records assumptions and choices, so your team weighs in early.
+- **Evidence beside the story.** A checklist maps each acceptance criterion to a named test; the gate, an automatic check before merge, reports missing coverage. The team still reviews whether the tests prove the requirement.
+- **Less handover writing.** Prepares the pull request, links it to the story, and attaches the finished checklist when you close the story after merge; the branch name carries the story key.
+- **People decide what changes.** Agent commands preview Jira writes for approval and check the saved plan before applying it.
+
+Updates happen when you run the commands or workflow. This is not a background service that cleans up every story.
 
 ## Why this exists, and how it compares
 
-An AI agent with a Jira token can change a story the moment it decides to. `skj` puts you back at each point where the story changes: the agent prepares the change, you read it, and only your yes applies it. The longer version: [why skj](docs/why.md). How that compares, and what changes day to day:
-
-- **An agent that writes to Jira on its own:** you see a change only after it is made. With `skj` you see it before, and say yes.
-- **A general Jira command line tool, or a plug-in that lets an agent call Jira directly:** it does what it is asked, when asked. `skj` makes a plan and waits for a person.
+A story’s plan, subtasks, discussion and delivery evidence can end up in different places. `skj` helps your agent maintain those records as the work progresses. Your team sets priorities, answers product questions and reviews the result. The longer version: [why skj](docs/why.md).
 
 | By hand | With `skj` |
 |---|---|
@@ -71,47 +74,21 @@ An AI agent with a Jira token can change a story the moment it decides to. `skj`
 
 ```mermaid
 flowchart TD
-    A(["Story PROJ-123"]) --> B["skj get and skj dod seed<br/>read the story, start the checklist"]
-    B --> C["Spec<br/>written with Spec Kit"]
-    C --> G1{"You review<br/>the spec"}
-    G1 -->|changes| C
-    G1 -->|yes| Q["skj questions --post<br/>preview of the questions"]
-    Q --> G2{"You approve<br/>the questions?"}
-    G2 -->|no| Q
-    G2 -->|"yes, add --apply"| T{"Your team answers<br/>on the story"}
-    T --> P["Plan<br/>written with Spec Kit"]
-    P --> G3{"You review<br/>the plan"}
-    G3 -->|changes| P
-    G3 -->|yes| D["Task list<br/>tasks.md"]
-    D --> E["skj push<br/>preview of the subtasks"]
-    E --> G4{"You approve<br/>the preview?"}
-    G4 -->|no| D
-    G4 -->|"yes, add --apply"| F["Subtasks appear in Jira"]
-    F --> I["Build<br/>tests first, then code"]
-    I --> J["skj gate<br/>automatic check"]
-    J -->|gaps| I
-    J -->|clear| K["skj pr create<br/>preview of the pull request"]
-    K --> G5{"You approve<br/>the preview?"}
-    G5 -->|no| K
-    G5 -->|"yes, add --apply"| L["Pull request opened"]
-    L --> G6{"Your team reviews<br/>and merges"}
-    G6 -->|merged| M["skj pr link<br/>link on the story"]
-    M --> N["skj done<br/>preview: attach the checklist, close the story"]
-    N --> G7{"You approve<br/>the preview?"}
-    G7 -->|no| N
-    G7 -->|"yes, add --apply"| O(["Story is Done"])
-
-    classDef start fill:#d6eaff,stroke:#2f6fb5,color:#10304f;
-    classDef work fill:#e3f5e1,stroke:#3a8a3a,color:#123512;
-    classDef human fill:#fff0c2,stroke:#b58900,stroke-width:3px,color:#3d2f00;
-    classDef tool fill:#efe0ff,stroke:#7a4fb5,color:#2e1450;
-    class A,O start;
-    class C,P,D,F,I,L work;
-    class G1,G2,T,G3,G4,G5,G6,G7 human;
-    class B,Q,E,J,K,M,N tool;
+    A(["Pick a story"]) --> B["Agent drafts the spec, questions and plan"]
+    B --> C{"Team reviews and answers questions"}
+    C --> D["Agent previews subtasks from the task list"]
+    D --> E{"You approve the Jira changes"}
+    E -->|"apply the saved plan with --apply"| F["Agent builds, tests and prepares review notes"]
+    F --> G{"You approve opening the pull request"}
+    G --> H{"Team reviews and merges"}
+    H --> I["Preview linking the pull request and closing the story"]
+    I --> J{"You approve the final Jira changes"}
+    J --> K(["Story closed with its checklist attached"])
+    classDef human fill:#fff0c2,stroke:#b58900,color:#3d2f00;
+    class C,E,G,H,J human;
 ```
 
-Yellow diamonds with a thick border are people's decisions. Purple boxes are `skj` commands. Green boxes are work and its results. Blue marks the start and the end.
+Yellow marks the team's decisions and approvals. This is the short version; questions, decisions and other Jira writes have their own previews and approvals.
 Nothing reaches Jira until you add `--apply`. You can run the steps yourself, ask your AI agent to run the
 [Spec Kit slash commands](#spec-kit-slash-commands), or start [the workflow](#the-jira-lifecycle-workflow), which waits for you at each human approval gate.
 Words such as gate and checklist are explained in the [glossary](docs/glossary.md).
@@ -248,9 +225,10 @@ On this site the token can edit or delete comments, including its own, so an app
 
 ## Also for other trackers
 
-Each kit is a separate, independent project.
+Built and maintained by Praveen Lavu. Each kit is a separate, independent project, built to reduce routine delivery work for the team.
 
 - **Azure DevOps:** [spec-kit-ado](https://github.com/praveenlavu/spec-kit-ado), for Azure DevOps work items.
+- **GitHub Issues and Projects:** [spec-kit-ghp](https://github.com/praveenlavu/spec-kit-ghp), for user-owned Projects in 0.1.
 
 ## Learn more
 

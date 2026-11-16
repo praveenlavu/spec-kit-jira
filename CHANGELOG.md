@@ -3,6 +3,10 @@
 All notable changes to `skj` are listed here. The format follows Keep a Changelog, and versions follow
 [the versioning rules](VERSIONING.md).
 
+**Unreleased documentation**
+
+- Explain the routine delivery work agents help with, add family artwork and maintainer credit, shorten the overview diagram, and link both public sibling kits. The illustrative apply example now checks a saved preview; tool behavior is unchanged.
+
 ## [0.1.0] - 2026-11-13
 
 The first version. Everything below is built and tested against a simulated Jira and was checked live on a real
