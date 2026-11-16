@@ -650,6 +650,7 @@ def readme_rm2_problems(readme):
 def test_the_readme_reads_in_plain_words_with_a_demo_and_three_badges(capsys):  # RM2-AC1..AC3
     readme = _read("README.md")
     assert readme_rm2_problems(readme) == []
+    assert "> *The agent holds the keyboard. You keep the pen.*" in readme and "## Who does what" in readme and "preview, ✅ your yes" in readme and "story ─▶ questions ─▶ plan" in readme  # RM3: the flair
     first = readme.split(DEMO_HEAD, 1)[0].splitlines()  # the first screen: hook, intro, badges, pitch, install, one "not in 0.1" line
     assert first[2] == PITCH and first[4] == INTRO and [ln for ln in first if ln.startswith("Not in 0.1:")] and "```bash" in first
     pitch = " ".join(first[first.index(next(ln for ln in first if ln.startswith("`skj` takes"))):][:3])
@@ -698,7 +699,7 @@ GATE_FIRST = "the gate, an automatic check before merge,"  # "gate" explained at
 GATE_MIXED = re.compile(r"\bhuman gates?\b|(?<!approval )\bgates\b|\beach gate\b", re.I)
 QUICK_LINKS = ("[Quick start](#quick-start) · [Slash commands](#spec-kit-slash-commands) · [Workflow](#the-jira-lifecycle-workflow) · "
                "[Status](#status)")
-README_MAX_LINES = 266  # the family guide's "<= ~260", plus the M1b link and the rules row (Fix-Docs2)
+README_MAX_LINES = 292  # the family guide's "<= ~260", plus the M1b link and the rules row (Fix-Docs2), plus 14 lines of RM3 flair and 12 of RM3b (the story strip, a tip)
 # Only the public Azure DevOps kit may be named; an unreleased sibling is never named, linked or teased (M1 brief ruling 2).
 SIBLING_WORDS = ("ghp", "(?<!#)spec-kit-(?!jira\\b|ado\\b)", "GitHub Projects kit", "coming soon")  # (?<!#): an in-page anchor
 SIBLING = re.compile("|".join(r"\b%s" % w for w in SIBLING_WORDS), re.I)
