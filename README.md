@@ -6,9 +6,16 @@ A community project for Jira Cloud, tested live on a real team-managed project: 
 
 [![Tests](https://github.com/praveenlavu/spec-kit-jira/actions/workflows/tests.yml/badge.svg)](https://github.com/praveenlavu/spec-kit-jira/actions/workflows/tests.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE) [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue)](docs/compatibility.md)
 
-`skj` takes a story in your Jira Cloud project to a pull request, one small step at a time, alongside [Spec Kit](https://github.com/github/spec-kit), which turns an idea into a spec, a plan and a task list.
+```text
+  story ─▶ questions ─▶ plan ─▶ subtasks ─▶ code ─▶ pull request ─▶ done
+     👀 you see every change first · ✅ you say yes · only then does Jira change
+```
+
+`skj` takes a story to a pull request, one small step at a time, alongside [Spec Kit](https://github.com/github/spec-kit), which turns an idea into a spec, a plan and a task list.
 Your AI agent does the building; `skj` puts the subtasks, the pull request and the finished checklist on the story and leaves your time for the questions, the tangents and the yes.
 Nothing changes in Jira until you have seen the exact change and said yes.
+
+> *The agent holds the keyboard. You keep the pen.*
 
 *Plain Python, standard library only. Your token stays out of the repository and is sent only to your own Jira site.*
 
@@ -22,6 +29,14 @@ skj doctor
 Not in 0.1: company-managed projects, Jira Data Center and pull request hosts other than GitHub ([the full list](#status)).
 
 [Quick start](#quick-start) · [Slash commands](#spec-kit-slash-commands) · [Workflow](#the-jira-lifecycle-workflow) · [Status](#status)
+
+## Who does what
+
+| | |
+|---|---|
+| 🧑 **You** | Ask the questions, chase the tangents worth chasing, and say yes. |
+| 🤖 **Your AI agent** | Writes the spec, the code and the tests. |
+| 🧾 **`skj`** | Shows every change before it happens, writes it only on your yes, and keeps the checklist. |
 
 ## See it in 20 seconds
 
@@ -45,17 +60,19 @@ created T002 PROJ-125
 created T003 PROJ-126
 ```
 
+That is the whole rhythm: 👀 preview, ✅ your yes, ✍️ apply.
+
 ## Why you'll like it
 
-- 💬 **Open questions get asked before any code.** `skj` posts your open questions to the story and keeps each choice in a plain file, so your team weighs in early.
-- ✋ **You say yes, the agent builds.** Every change to Jira is shown to you first, and what you approve is exactly what gets written. If the plan changed in between, nothing is.
-- 🧪 **Every "done when" line gets a test.** Jira calls those lines acceptance criteria. A checklist ties each one to the test that proves it, and the gate, an automatic check before merge, reports any line without one.
-- 🛑 **When in doubt, it stops.** A changed plan, a missing approval or a setting it cannot trust ends the command with nothing written.
-- 📌 **The story shows the work, and you close it.** Subtasks, the pull request link and the finished checklist go on the story, and the branch name carries the story key. The workflow ends at the open pull request; `skj done` closes the story, after the merge and your yes.
+- 💬 **Ask early, build once.** `skj` posts your open questions to the story and keeps each choice in a plain file, so your team weighs in early, before the rework does.
+- ✋ **The agent types, you decide.** Every change to Jira is shown to you first, and what gets written is exactly what you read. If the plan changed in between, nothing is written.
+- 🧪 **"Done" comes with receipts.** Each "done when" line in your story, which Jira calls an acceptance criterion, is tied to the test that proves it; the gate, an automatic check before merge, names any line without one.
+- 🛑 **When in doubt, it stops.** A changed plan, a missing approval or a setting it cannot trust ends the command with nothing written. A boring stop beats a surprising success.
+- 📌 **The story tells the truth.** Subtasks, the pull request link and the finished checklist go on the story, and the branch name carries the story key. The workflow ends at the open pull request; `skj done` closes the story, after the merge and your yes.
 
 ## Why this exists, and how it compares
 
-An AI agent with a Jira token can change a story the moment it decides to. `skj` puts you back at each point where the story changes: the agent prepares the change, you read it, and only your yes applies it. The longer version: [why skj](docs/why.md). How that compares, and what changes day to day:
+Agents are great at typing and less great at asking first. An AI agent with a Jira token can change a story the moment it decides to. `skj` puts you back at each point where the story changes: the agent prepares the change, you read it, and only your yes applies it. The longer version: [why skj](docs/why.md). How that compares, and what changes day to day:
 
 - **An agent that writes to Jira on its own:** you see a change only after it is made. With `skj` you see it before, and say yes.
 - **A general Jira command line tool, or a plug-in that lets an agent call Jira directly:** it does what it is asked, when asked. `skj` makes a plan and waits for a person.
@@ -117,6 +134,9 @@ Nothing reaches Jira until you add `--apply`. You can run the steps yourself, as
 Words such as gate and checklist are explained in the [glossary](docs/glossary.md).
 
 ## Quick start
+
+> [!TIP]
+> Lost halfway through a story? `skj status PROJ-123` names the stage it is at and the one command that moves it on.
 
 You need Python 3.9 or newer, `git`, a Jira Cloud account and a story with a section titled "Acceptance criteria". The workflow runs your agent headless, so with Claude Code it needs the permission list in [docs/claude-permissions.json](docs/claude-permissions.json) first ([how](docs/quick-start.md#the-workflow-runs-the-agent-headless)).
 Nothing in these steps changes your Jira site. The same steps with example output: [docs/quick-start.md](docs/quick-start.md).
@@ -258,6 +278,8 @@ Each kit is a separate, independent project.
 - **Set up:** [every setting in skj.config.json](docs/configuration.md), [what it runs on](docs/compatibility.md), [stack and kits](docs/stack-and-kits.md), [checks for GitHub](docs/ci.md) and the templates in [ci/README.md](ci/README.md).
 - **Trust:** [security and trust](docs/security-and-trust.md), [the security policy](SECURITY.md) and [the AI agent's runbook](AGENTS.md).
 - **Project:** [contributing](CONTRIBUTING.md), [the changelog](CHANGELOG.md), [versioning](VERSIONING.md), [the release checklist](docs/release-checklist.md), [the catalog submission checklist](docs/catalog-submission.md) and [text for listings](docs/launch-copy.md).
+
+Found a story it handled badly, or have an idea? [Open an issue](https://github.com/praveenlavu/spec-kit-jira/issues) or read [contributing](CONTRIBUTING.md).
 
 ## License and trademarks
 
