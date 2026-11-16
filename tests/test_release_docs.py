@@ -187,6 +187,11 @@ LIVE_LEFT = ("Not yet run live: comment approval by a second user and an edit by
              "experimental), company-managed projects, real 429, 503, timeout and 403 answers, the token store on Linux and Windows, "
              "the copy-in GitHub checks in a repository of their own and a pull request from a fork, and `skj done` after a real "
              "merge with a decision a human validated.")
+README_LIVE_RAN = ("Setup, reading stories, subtasks, questions and decisions, the checks before merge, the pull request link, closing a "
+                   "story and the add-on's 13 commands all ran there. The `jira-lifecycle` workflow ran end to end on one story, up to "
+                   "an open pull request, and every problem it found is fixed.")
+README_LIVE_LEFT = ("**Not covered yet:** company-managed projects, approval by a second person (comment approval stays experimental), real \"slow down\" and \"unavailable\" "
+                    "answers from Jira, keeping the token on Linux and Windows, pull requests from forks, and `skj done` after a real merge.")
 LIVE_GONE = ("Built and tested against a simulated Jira; the first live checks", "simulated Jira so far",
              "ran a few commands once", "Not yet run on a real site: comment approval, business rules",
              "LV3 and LV4 have not run", "for the first live checks", "simulated team-managed only",
@@ -199,8 +204,12 @@ LIVE_GONE = ("Built and tested against a simulated Jira; the first live checks",
 def test_the_docs_say_what_the_live_checks_proved():  # HD2-AC1, DF8
     readme = " ".join(_read("README.md").split("## Status", 1)[1].split("\n## ", 1)[0].split())
     changelog = " ".join(_read("CHANGELOG.md").split())
-    for text in (readme, changelog):
-        assert td.NOT_LIVE in text and LIVE_RAN in text and LIVE_LEFT in text
+    unverified = " ".join(_read("docs/unverified.md").split())
+    for text in (changelog, unverified):  # RM2: the full account lives in the changelog and docs/unverified.md; the README keeps it short
+        assert LIVE_RAN in text and LIVE_LEFT in text
+    assert td.NOT_LIVE in readme and td.NOT_LIVE in changelog
+    assert README_LIVE_RAN in readme and README_LIVE_LEFT in readme and "docs/unverified.md" in readme
+    assert "About 600" not in readme and "143" not in readme and "23 defects" not in readme  # no run counts in the README
     checklist = " ".join(_read(CHECKLIST).split())
     assert all("- [x] LV%d:" % n in checklist for n in (1, 2, 3, 4)) and "- [x] Only after LV3 and LV4 pass:" in checklist
     assert "The live checks LV1 to LV4 ran on a real Jira Cloud Free site (2026-11)" in checklist

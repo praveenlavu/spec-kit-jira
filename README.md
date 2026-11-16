@@ -2,12 +2,13 @@
 
 **Your AI agent does the Jira grunt work. You press yes.**
 
-A community project for Jira Cloud, tested live on a real team-managed project; company-managed projects, approvals by a second user and token storage on Linux and Windows are not yet run: see [Status](#status).
+A community project for Jira Cloud, tested live on a real team-managed project: see [Status](#status).
 
-`skj` turns a story in your Jira Cloud project into a pull request, one small step at a time, with every change shown to you first.
-It works with [Spec Kit](https://github.com/github/spec-kit), which helps you (or your AI agent) go from an idea
-to a spec, a plan and a task list. Your agent does the building; `skj` puts the subtasks, the pull request and the finished checklist on the story
-and leaves your time for the questions, the tangents and the yes. It is for developers and teams on Jira Cloud who let an AI coding agent build, and want every change to Jira to wait for a person.
+[![Tests](https://github.com/praveenlavu/spec-kit-jira/actions/workflows/tests.yml/badge.svg)](https://github.com/praveenlavu/spec-kit-jira/actions/workflows/tests.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE) [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue)](docs/compatibility.md)
+
+`skj` takes a story in your Jira Cloud project to a pull request, one small step at a time, alongside [Spec Kit](https://github.com/github/spec-kit), which turns an idea into a spec, a plan and a task list.
+Your AI agent does the building; `skj` puts the subtasks, the pull request and the finished checklist on the story and leaves your time for the questions, the tangents and the yes.
+Nothing changes in Jira until you have seen the exact change and said yes.
 
 *Plain Python, standard library only. Your token stays out of the repository and is sent only to your own Jira site.*
 
@@ -17,37 +18,54 @@ skj setup --site your-site.atlassian.net --project PROJ
 skj doctor
 ```
 
-`skj doctor` changes nothing and names the fix for each check that fails, such as a token not stored yet ([all five steps](#quick-start)). Not in 0.1: company-managed projects, Jira Data Center, scoped API tokens and pull request hosts other than GitHub ([the full list](#status)).
+`skj doctor` changes nothing and names the fix for each check that fails ([all five steps](#quick-start)).
+Not in 0.1: company-managed projects, Jira Data Center and pull request hosts other than GitHub ([the full list](#status)).
 
 [Quick start](#quick-start) · [Slash commands](#spec-kit-slash-commands) · [Workflow](#the-jira-lifecycle-workflow) · [Status](#status)
 
+## See it in 20 seconds
+
+Example output, trimmed, with an invented story and invented tasks. First a preview, then the same command with your yes:
+
+```text
+$ skj push PROJ-123
+Plan for PROJ-123: push tasks.md to subtasks (label skj)
+create 3 · skip 0 · transition 0 · no-op 0 · refused 0 · orphan 0 · duplicate 0
+
+| action | task | subtask | summary | transition |
+|---|---|---|---|---|
+| create | T001 | - | T001 Add the login form | - |
+| create | T002 | - | T002 Check the email address | - |
+| create | T003 | - | T003 Show a clear error message | - |
+dry run: nothing written; add --apply to write
+
+$ skj push PROJ-123 --apply
+created T001 PROJ-124
+created T002 PROJ-125
+created T003 PROJ-126
+```
+
 ## Why you'll like it
 
-Once the spec and the plan are agreed, an agent can write the code and the tests. The part that needs you comes first.
-
-- **Questions and choices reach the team before any code.** `skj questions --post` shows the open questions and `skj decisions` records each choice in a plain file; add `--apply` to post them to the story.
-- **You approve, the agent builds.** Every command that writes to Jira shows a preview and waits for your yes. With `--expect-plan` the apply does exactly the plan you read; if it changed in between, nothing is written.
-- **Every criterion has its test.** A checklist ties each acceptance criterion to the test that proves it, and the gate, an automatic check before merge, reports any criterion without one.
-- **When in doubt, it stops.** A changed plan, a missing approval or settings it cannot trust end the command with nothing written.
-- **The story shows the work, and you close it.** Subtasks, the pull request link and the finished checklist go on the story, and the branch name carries the story key. The workflow ends at the open pull request; `skj` closes the story only with `skj done`, after the merge and your yes.
+- 💬 **Open questions get asked before any code.** `skj` posts your open questions to the story and keeps each choice in a plain file, so your team weighs in early.
+- ✋ **You say yes, the agent builds.** Every change to Jira is shown to you first, and what you approve is exactly what gets written. If the plan changed in between, nothing is.
+- 🧪 **Every "done when" line gets a test.** Jira calls those lines acceptance criteria. A checklist ties each one to the test that proves it, and the gate, an automatic check before merge, reports any line without one.
+- 🛑 **When in doubt, it stops.** A changed plan, a missing approval or a setting it cannot trust ends the command with nothing written.
+- 📌 **The story shows the work, and you close it.** Subtasks, the pull request link and the finished checklist go on the story, and the branch name carries the story key. The workflow ends at the open pull request; `skj done` closes the story, after the merge and your yes.
 
 ## Why this exists, and how it compares
 
-An AI agent with a Jira token can change a story the moment it decides to. `skj` puts you back at each point where the story
-changes: the agent prepares the change, you read it, and only your yes applies it. The longer version: [why skj](docs/why.md). How that compares:
+An AI agent with a Jira token can change a story the moment it decides to. `skj` puts you back at each point where the story changes: the agent prepares the change, you read it, and only your yes applies it. The longer version: [why skj](docs/why.md). How that compares, and what changes day to day:
 
 - **An agent that writes to Jira on its own:** you see a change only after it is made. With `skj` you see it before, and say yes.
-- **A general Jira command line tool, or an MCP server (a set of tools an agent can call):** it does what it is asked, when asked. `skj` makes a plan and waits for a person.
-- **Its sibling kit for another tracker:** the same shape and the same rules; this one is for Jira Cloud ([other trackers](#also-for-other-trackers)).
-
-### Before and after
+- **A general Jira command line tool, or a plug-in that lets an agent call Jira directly:** it does what it is asked, when asked. `skj` makes a plan and waits for a person.
 
 | By hand | With `skj` |
 |---|---|
-| Open questions are asked wherever the team happens to talk. | Questions are posted to the story before the plan is approved. |
-| You copy the tasks into subtasks and keep them in step yourself. | `skj push` creates one subtask per task, after you see the preview. |
-| You check by eye that each acceptance criterion has a test. | `skj gate` reports each criterion that has no test, before merge. |
-| You link the pull request to the story yourself. | `skj pr link` links them; `skj done` attaches the checklist and closes the story. |
+| Open questions are asked wherever the team happens to talk. | Questions go to the story before the plan is approved. |
+| You copy the tasks into subtasks and keep them in step yourself. | One subtask per task, created after you see the preview. |
+| You check by eye that each acceptance criterion has a test. | An automatic check before merge names each one without a test. |
+| You link the pull request to the story yourself. | `skj pr link` links it; `skj done` attaches the checklist and closes the story. |
 
 ## How it works
 
@@ -104,32 +122,27 @@ You need Python 3.9 or newer, `git`, a Jira Cloud account and a story with a sec
 Nothing in these steps changes your Jira site. The same steps with example output: [docs/quick-start.md](docs/quick-start.md).
 
 **1. Install.**
-
 ```bash
 pipx install "git+https://github.com/praveenlavu/spec-kit-jira@v0.1.0"
 skj --version
 ```
 
 **2. Store your Jira API token** (macOS). Make the token in your Atlassian account settings first. This line asks for it and hides what you type. On Linux, skip this step: step 3 asks for it instead.
-
 ```bash
 security add-generic-password -a 'you@example.com' -s 'skj:your-site.atlassian.net' -w
 ```
 
 **3. Connect your repository** to your site and project. This writes `skj.config.json` (no secrets in it). Commit it to your main branch.
-
 ```bash
 skj setup --site your-site.atlassian.net --project PROJ
 ```
 
-**4. Check the setup.** One line per check. A `fail` line tells you how to fix it.
-
+**4. Check the setup.** One line per check. A `fail` line tells you how to fix it; the common ones are in [the quick start](docs/quick-start.md#if-something-goes-wrong).
 ```bash
 skj doctor
 ```
 
 **5. Try your first story.** Read it, start its checklist, and ask what comes next.
-
 ```bash
 skj get PROJ-123
 skj dod seed PROJ-123 --spec-dir specs/001-my-feature
@@ -138,13 +151,11 @@ skj status PROJ-123
 
 ## Install the Spec Kit add-on
 
-The add-on gives your AI agent 13 commands. Run this inside your Spec Kit project (the folder where you ran `specify init`).
+The add-on gives your AI agent 13 commands. Run the line below inside your Spec Kit project (the folder where you ran `specify init`). From a local copy of this repository instead: `specify extension add --dev <path-to-your-copy>`.
 
 ```bash
 specify extension add jira-lifecycle --from https://github.com/praveenlavu/spec-kit-jira/archive/refs/tags/v0.1.0.zip
 ```
-
-From a local copy of this repository instead: `specify extension add --dev <path-to-your-copy>`.
 
 ### Spec Kit slash commands
 
@@ -211,12 +222,10 @@ Every command has `--help`, for example `skj push --help`. To be sure an apply d
 
 The trust model in five promises; the whole model is in [security and trust](docs/security-and-trust.md).
 
-- **Preview first.** Every command that changes Jira or opens a pull request shows the change and does nothing until you add `--apply`.
-  (If you copy in the optional link check for GitHub, it adds the link after a merge: the merge is your yes.)
+- **Preview first.** Every command that changes Jira or opens a pull request shows the change and does nothing until you add `--apply`. (If you copy in the optional link check for GitHub, it adds the link after a merge: the merge is your yes.)
 - **Your token stays private.** It lives in your keychain (macOS) or a private file in your home folder (for the optional GitHub check, in a GitHub secret), never in the repository.
 - **Trust settings come from your main branch.** Who may approve, and the site your token is sent to, are read from the branch a pull request targets, so editing them on a branch changes nothing. On your own computer that branch is the one your clone's `origin/HEAD` names; when `origin/main` (or `origin/master` if there is no `origin/main`) is in strict mode or comment approval, `skj` refuses to run if `origin/HEAD` names any other branch, and uses that branch when `origin/HEAD` is not set. Your clone itself is as trusted as your computer: creating, rewriting or deleting any `refs/remotes/origin/*` ref in the local clone is not detected; CI reads the real remote. In CI, with `--base origin/<target>` or else the branch `origin/HEAD` names, a pull request into another branch beside a strict `origin/main` is judged by `origin/main`'s config; otherwise by its target's config when that is strict, else by the pull request's own. When both the target branch and `origin/main` are strict, the target branch's gate settings apply (only the mode is compared). The templates use `fetch-depth: 0`; a checkout without it reads a fresh `--base` as before ([details](docs/security-and-trust.md#trust-settings-come-from-the-target-branch)).
-- **Jira text is data.** Story and comment text is never run and never obeyed. Where the story title is used in a pull request
-  title or a branch name, it is cleaned first and passed as a single argument, never through a shell.
+- **Jira text is data.** Story and comment text is never run and never obeyed. Where the story title is used in a pull request title or a branch name, it is cleaned first and passed as a single argument, never through a shell.
 - **No smart commits.** It never writes Jira smart-commit commands (like `#done` in a commit message), and the gate warns about them.
 - **It never deletes.** Removed tasks are reported in the preview; their subtasks are left alone.
 
@@ -231,20 +240,11 @@ On this site the token can edit or delete comments, including its own, so an app
 
 ## Status
 
-This is an early version (0.1.0).
-- **Tested live on a real Jira Cloud Free site, on a team-managed project (2026-11).** About 600 live checks covered setup and doctor, get and comments (including more than 100 comments and pagination), the branch dry run, dod seed and refresh with acceptance-criteria drift, decisions, questions (posted once, never duplicated), push of subtasks, the gate, strict mode (its refusals and its success path, up to `done` closing a story), business rules on a real Epic parent chain, pr link, done with the ledger attachment, the Spec Kit add-on and its 13 commands, the bundle and a security sweep; the 23 defects they found are fixed and re-tested. The `jira-lifecycle` workflow, driven by Claude Code, ran end to end on a story, up to a pull request on a private GitHub repository; a rejected gate left Jira unchanged, and a second and third run added no duplicate comment or subtask. The final pass ran 143 of 143 checks green. Running the workflow found six problems (among them the headless permissions, a missing check after each agent step and a stale ledger at the review approval gates), all fixed. A `/approve D1` line typed in the Jira editor is stored as plain text. Not yet run live: comment approval by a second user and an edit by someone else (comment approval stays experimental), company-managed projects, real 429, 503, timeout and 403 answers, the token store on Linux and Windows, the copy-in GitHub checks in a repository of their own and a pull request from a fork, and `skj done` after a real merge with a decision a human validated.
-- **Team-managed projects only.** Company-managed projects are not tested; `skj doctor` warns about them in the `project-type` row.
-- **Works today:** setup, doctor, get, comments, status, dod, branch, decisions, questions, push, gate, pr create, pr link, done,
-  strict mode, stack, kits, calibrate, business rules (`skj rules`, checked by the gate and strict mode), the Spec Kit add-on and its
-  `jira-lifecycle` workflow, the copy-in GitHub checks in [ci/](ci/README.md), and comment approval (experimental). The kit's own workflows have run on GitHub; the GitHub checks in ci/ have not yet run in a repository of their own.
-- **Not in 0.1:** a `skj strict override` command (not in 0.1: an override is a hand-written decision line of kind `override`), an approval-request comment,
-  single-item write commands (create, update, comment, link, attach one item), downloading attachments, company-managed projects,
-  scoped API tokens, Jira Data Center, and pull request hosts other than GitHub. The `unattended` settings are accepted but not used yet.
-  What is still unproven is listed in [docs/unverified.md](docs/unverified.md).
-
-## If something goes wrong
-
-Run `skj doctor` first. Each line names a check and how to fix it; the common ones are in [the quick start](docs/quick-start.md#if-something-goes-wrong).
+- Tested live on a real Jira Cloud Free site, on a team-managed project (2026-11). Setup, reading stories, subtasks, questions and decisions, the checks before merge, the pull request link, closing a story and the add-on's 13 commands all ran there. The `jira-lifecycle` workflow ran end to end on one story, up to an open pull request, and every problem it found is fixed.
+- **Works today:** everything in the command tables on this page, the `jira-lifecycle` workflow and, as an experiment, comment approval. The kit's own workflows have run on GitHub; the GitHub checks in ci/ have not yet run in a repository of their own.
+- **Not covered yet:** company-managed projects, approval by a second person (comment approval stays experimental), real "slow down" and "unavailable" answers from Jira, keeping the token on Linux and Windows, pull requests from forks, and `skj done` after a real merge.
+- **Not in 0.1:** Jira Data Center, scoped API tokens, pull request hosts other than GitHub, a `skj strict override` command (not in 0.1: an override is a hand-written decision line of kind `override`), single-item write commands, downloading attachments, and the `unattended` settings (accepted, not used yet).
+- This is an early version (0.1.0). The long list, with the reason for each item: [docs/unverified.md](docs/unverified.md) and the [changelog](CHANGELOG.md).
 
 ## Also for other trackers
 

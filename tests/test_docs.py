@@ -512,8 +512,11 @@ FAMILY_ADO_LINE = "- **Azure DevOps:** [spec-kit-ado](%s), for Azure DevOps work
 OWNERS = {"github", "your-org"}  # the only github.com accounts a public doc may name (Spec Kit, a placeholder)
 NOT_AFFILIATED = "Not affiliated with or endorsed by Atlassian. Jira is a trademark of Atlassian."  # X9, verbatim
 NOT_LIVE = "Tested live on a real Jira Cloud Free site, on a team-managed project (2026-11)."  # LV1 to LV4 (the flip); comment approval stays experimental
-INTRO = ("A community project for Jira Cloud, tested live on a real team-managed project; company-managed projects, approvals by a "
-         "second user and token storage on Linux and Windows are not yet run: see [Status](#status).")  # README line 5
+INTRO = "A community project for Jira Cloud, tested live on a real team-managed project: see [Status](#status)."  # README line 5 (RM2: short)
+# RM2: the only images a public doc may show, three README badges; any other image still fails
+BADGE_URLS = (REPO_URL + "/actions/workflows/tests.yml/badge.svg", "https://img.shields.io/badge/license-MIT-blue",
+              "https://img.shields.io/badge/python-3.9%2B-blue")
+IMAGE = re.compile(r"!\[[^\]]*\]\(([^)\s]*)\)")
 RENAMING = ("Atlassian has renamed some words: a Jira project is now also called a space, and an issue a work item. "
             "These docs use the older words, project and issue (a story is one kind of issue).")
 FREE_LIMITS = ("permissions cannot be customised", "there is no audit log", "everyone is an admin", "needs a paid plan")
@@ -593,7 +596,8 @@ def test_public_docs_have_no_fork_words_logos_secrets_or_real_sites():  # C2-AC3
         assert scrub.scan_text(rel, text, deny) == [], rel
         assert set(_EMAIL.findall(text.replace(REPO_URL + "@", ""))) <= {"you@example.com"} and set(_SITE.findall(text)) <= {"your-site.atlassian.net"}, rel
         own = text.replace(FAMILY_ADO_LINE + "\n", "") if rel == "README.md" else text  # the sibling's URL names its account
-        own = own.replace(REPO_URL, "")  # REL1: this kit's own public repository names the account too
+        assert [u for u in IMAGE.findall(own) if u not in BADGE_URLS] == [] and (rel == "README.md" or not IMAGE.search(own)), rel
+        own = IMAGE.sub("", own).replace(REPO_URL, "")  # RM2: the three badges; REL1: this kit's own public repository names the account too
         assert not re.search(r"praveenlavu|!\[", own, re.I), rel  # no image, no owner account outside the family line
         assert set(re.findall(r"github\.com/([\w.-]+)", own, re.I)) <= OWNERS, rel  # no other account: Spec Kit's and a placeholder
         for heading in re.findall(r"^#+ (.*)", text, re.M):  # a mark only referentially ("for Jira"), never as a name
@@ -616,6 +620,49 @@ def test_the_readme_pins():  # X9, honesty, the quick start and the flowchart
     assert len(chart) == 1 and "classDef human" in chart[0]
     human = re.search(r"^\s*class ([\w,]+) human;", chart[0], re.M)
     assert human and len(human.group(1).split(",")) >= 4 and chart[0].count("--apply") >= 1
+
+
+# ---- RM2: the README reads in plain words, with a demo and three badges (the owner found it jargon-heavy and flat) ----------------
+
+JARGON = re.compile(r"\b(?:ledger|gates?|headless|drift|strict|expect-plan|trust keys?|tamper\w*)\b", re.I)
+ACRONYMS = re.compile(r"\b(?:MCP|ADF|DoD)\b")  # capitals only: `skj dod` is a command, not the word
+DEMO_HEAD = "## See it in 20 seconds"
+
+
+def readme_rm2_problems(readme):
+    """Every RM2 rule broken by this README text, as short labels (empty: all hold)."""
+    bad = []
+    top = readme.split("\n## How it works", 1)[0].replace("the gate, an automatic check before merge,", "")  # the pinned first use
+    if JARGON.search(top) or ACRONYMS.search(top):
+        bad.append("jargon")
+    if IMAGE.findall(readme) != list(BADGE_URLS):
+        bad.append("badges")
+    demo = readme.split(DEMO_HEAD, 1)[1].split("\n## ", 1)[0] if DEMO_HEAD in readme else ""
+    block = re.search(r"([^\n]*)\n\n```text\n(.*?)```", demo, re.S)
+    if not block or "example output" not in block.group(1).lower():
+        return bad + ["demo"]
+    cmds = [ln[2:].split() for ln in block.group(2).splitlines() if ln.startswith("$ ")]
+    if len(cmds) != 2 or any(c[0] != "skj" or not _names_a_command(c[1:2]) or not tm._parse(c[1:]) for c in cmds):
+        bad.append("demo commands")
+    return bad
+
+
+def test_the_readme_reads_in_plain_words_with_a_demo_and_three_badges(capsys):  # RM2-AC1..AC3
+    readme = _read("README.md")
+    assert readme_rm2_problems(readme) == []
+    first = readme.split(DEMO_HEAD, 1)[0].splitlines()  # the first screen: hook, intro, badges, pitch, install, one "not in 0.1" line
+    assert first[2] == PITCH and first[4] == INTRO and [ln for ln in first if ln.startswith("Not in 0.1:")] and "```bash" in first
+    pitch = " ".join(first[first.index(next(ln for ln in first if ln.startswith("`skj` takes"))):][:3])
+    assert len(re.findall(r"[.;] |\.$", pitch)) >= 3 and "said yes" in pitch and "exact change" in pitch
+    mutants = {  # each mutant must break exactly the rule named
+        "jargon": readme.replace("so your team weighs in early", "so your team weighs in early, in a ledger"),
+        "badges": readme.replace(DEMO_HEAD, "![x](https://example.com/x.png)\n\n" + DEMO_HEAD),
+        "demo": readme.replace("Example output, trimmed", "Output, trimmed"),
+        "demo commands": readme.replace("$ skj push PROJ-123 --apply", "$ skj pushh PROJ-123 --apply"),
+    }
+    for label, text in mutants.items():
+        assert label in readme_rm2_problems(text), label
+    capsys.readouterr()
 
 
 def test_the_readme_voice_add_on_commands_and_workflow():  # M1-AC1..AC3 (T3)

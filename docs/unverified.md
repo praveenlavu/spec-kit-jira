@@ -34,3 +34,11 @@ For what the comment approval limits mean for you, see [security and trust](secu
 | U26 | That the deny rules of `docs/claude-permissions.json` with a `*` in the middle refuse what they name. | The real workflow, driven by Claude Code, ran end to end on a story (2026-11); whether each deny rule refuses what it names is not recorded. |
 | U27 | Proxy settings. | `skj` ignores `HTTPS_PROXY` and the other proxy variables; behind a mandatory proxy it fails with a network error. Not tried. |
 | U28 | `skj done` after a real merge, with a decision a human validated. | `skj done` closed stories on the real site, but not after a real merge with a validated decision. |
+
+## What the live checks covered
+
+The README keeps this short; this is the full account of the live checks on one real Jira Cloud Free site (2026-11), moved here from the README's Status section.
+
+- About 600 live checks covered setup and doctor, get and comments (including more than 100 comments and pagination), the branch dry run, dod seed and refresh with acceptance-criteria drift, decisions, questions (posted once, never duplicated), push of subtasks, the gate, strict mode (its refusals and its success path, up to `done` closing a story), business rules on a real Epic parent chain, pr link, done with the ledger attachment, the Spec Kit add-on and its 13 commands, the bundle and a security sweep; the 23 defects they found are fixed and re-tested. The `jira-lifecycle` workflow, driven by Claude Code, ran end to end on a story, up to a pull request on a private GitHub repository; a rejected gate left Jira unchanged, and a second and third run added no duplicate comment or subtask.
+- The final pass ran 143 of 143 checks green. Running the workflow found six problems (among them the headless permissions, a missing check after each agent step and a stale ledger at the review approval gates), all fixed. A `/approve D1` line typed in the Jira editor is stored as plain text.
+- Not yet run live: comment approval by a second user and an edit by someone else (comment approval stays experimental), company-managed projects, real 429, 503, timeout and 403 answers, the token store on Linux and Windows, the copy-in GitHub checks in a repository of their own and a pull request from a fork, and `skj done` after a real merge with a decision a human validated.
