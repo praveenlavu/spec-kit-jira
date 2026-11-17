@@ -501,21 +501,24 @@ def test_the_safety_sentences_are_pinned_verbatim():
 PUBLIC = ("README.md", "docs/quick-start.md", "docs/configuration.md", "docs/glossary.md", "docs/security-and-trust.md", "docs/ci.md",
           "docs/compatibility.md", "docs/stack-and-kits.md", "docs/unverified.md", "docs/release-checklist.md", "docs/catalog-submission.md",
           "docs/why.md", "docs/launch-copy.md")  # RM1: the why page and the listing texts
-PITCH = "**Your AI agent does the Jira grunt work. You press yes.**"  # M1: the family pitch, the README's first bold line
-HUMAN_CLOSE = "leaves your time for the questions, the tangents and the yes"
+PITCH = "**Keep Jira in step with the work. You press yes.**"  # the README's first bold line
+HUMAN_CLOSE = "Your team spends less time copying tasks and writing handover notes, and more time deciding what to build."
 NOT_OFFICIAL = "A community project, not an official GitHub product."  # M1 (T3-AC4): next to NOT_AFFILIATED
 ADDON_INSTALL = ("specify extension add jira-lifecycle --from %s" % ARCHIVE,
                  "specify extension add --dev <path-to-your-copy>")
 WORKFLOW_RUN = "specify workflow run jira-lifecycle --input issue_number=<n>"
 ADO_URL = "https://github.com/praveenlavu/spec-kit-ado"  # M1: the one public sibling kit, linked once
 FAMILY_ADO_LINE = "- **Azure DevOps:** [spec-kit-ado](%s), for Azure DevOps work items." % ADO_URL  # the one sanctioned fork-word line
+GHP_URL = "https://github.com/praveenlavu/spec-kit-ghp"  # the second public sibling kit, linked once
+FAMILY_GHP_LINE = "- **GitHub Issues and Projects:** [spec-kit-ghp](%s), for user-owned Projects in 0.1." % GHP_URL
 OWNERS = {"github", "your-org"}  # the only github.com accounts a public doc may name (Spec Kit, a placeholder)
 NOT_AFFILIATED = "Not affiliated with or endorsed by Atlassian. Jira is a trademark of Atlassian."  # X9, verbatim
 NOT_LIVE = "Tested live on a real Jira Cloud Free site, on a team-managed project (2026-11)."  # LV1 to LV4 (the flip); comment approval stays experimental
-INTRO = "A community project for Jira Cloud, tested live on a real team-managed project: see [Status](#status)."  # README line 5 (RM2: short)
-# RM2: the only images a public doc may show, three README badges; any other image still fails
+INTRO = "A Spec Kit add-on for Jira Cloud, with the `skj` command-line tool. Tested on a real team-managed project: see [Status](#status)."
+# The only images a public doc may show: three README badges and the repo's own banner; any other image still fails
 BADGE_URLS = (REPO_URL + "/actions/workflows/tests.yml/badge.svg", "https://img.shields.io/badge/license-MIT-blue",
               "https://img.shields.io/badge/python-3.9%2B-blue")
+BANNER = "docs/assets/banner.svg"
 IMAGE = re.compile(r"!\[[^\]]*\]\(([^)\s]*)\)")
 RENAMING = ("Atlassian has renamed some words: a Jira project is now also called a space, and an issue a work item. "
             "These docs use the older words, project and issue (a story is one kind of issue).")
@@ -591,12 +594,12 @@ def test_public_docs_have_no_fork_words_logos_secrets_or_real_sites():  # C2-AC3
     scrub = _scrub()
     deny = scrub.load_denylist(os.environ, ROOT / scrub.DENYLIST_FILE)
     for rel, text in _public(chart=False).items():
-        lines = [line for line in text.splitlines() if line != RENAMING and (rel, line) != ("README.md", FAMILY_ADO_LINE)]
+        lines = [line for line in text.splitlines() if line != RENAMING and not (rel == "README.md" and line in (FAMILY_ADO_LINE, FAMILY_GHP_LINE))]
         assert not [line for line in lines if NO_ADO.search(line) or tm.HTML.search(line)], rel
         assert scrub.scan_text(rel, text, deny) == [], rel
         assert set(_EMAIL.findall(text.replace(REPO_URL + "@", ""))) <= {"you@example.com"} and set(_SITE.findall(text)) <= {"your-site.atlassian.net"}, rel
-        own = text.replace(FAMILY_ADO_LINE + "\n", "") if rel == "README.md" else text  # the sibling's URL names its account
-        assert [u for u in IMAGE.findall(own) if u not in BADGE_URLS] == [] and (rel == "README.md" or not IMAGE.search(own)), rel
+        own = text.replace(FAMILY_ADO_LINE + "\n", "").replace(FAMILY_GHP_LINE + "\n", "") if rel == "README.md" else text  # the siblings' URLs name the account
+        assert [u for u in IMAGE.findall(own) if u not in BADGE_URLS + (BANNER,)] == [] and (rel == "README.md" or not IMAGE.search(own)), rel
         own = IMAGE.sub("", own).replace(REPO_URL, "")  # RM2: the three badges; REL1: this kit's own public repository names the account too
         assert not re.search(r"praveenlavu|!\[", own, re.I), rel  # no image, no owner account outside the family line
         assert set(re.findall(r"github\.com/([\w.-]+)", own, re.I)) <= OWNERS, rel  # no other account: Spec Kit's and a placeholder
@@ -604,15 +607,20 @@ def test_public_docs_have_no_fork_words_logos_secrets_or_real_sites():  # C2-AC3
             assert "Atlassian" not in heading and not re.search(r"(?<!for )(?<!with )(?<!in )Jira", heading), (rel, heading)
     readme = _read("README.md")
     assert readme.count(ADO_URL) == 1 and readme.splitlines().count(FAMILY_ADO_LINE) == 1
+    assert readme.count(GHP_URL) == 1 and readme.splitlines().count(FAMILY_GHP_LINE) == 1
     images = [p for p in ROOT.rglob("*") if p.suffix.lower() in (".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico", ".webp")
               and not {".git", ".venv", ".superpowers"} & set(p.parts) and not (p.suffix.lower() == ".svg" and "tests" in p.parts)]
-    assert not images, images
+    assert images == [ROOT / BANNER], images  # the one repo-owned banner; it must be plain vector art
+    import xml.etree.ElementTree as ET
+    art = ET.fromstring((ROOT / BANNER).read_text())
+    assert art.tag == "{http://www.w3.org/2000/svg}svg"
+    assert not any(n.tag.rsplit("}", 1)[-1] in {"image", "script", "foreignObject"} for n in art.iter())
 
 
 def test_the_readme_pins():  # X9, honesty, the quick start and the flowchart
     readme = _read("README.md")
     assert readme.count(NOT_AFFILIATED) == 1 and NOT_LIVE in readme.split("## Status", 1)[1].split("\n## ", 1)[0]
-    assert readme.splitlines()[4] == INTRO and "production ready" not in readme.lower()
+    assert INTRO in readme.split(DEMO_HEAD, 1)[0] and "production ready" not in readme.lower()
     start = readme.split("## Quick start", 1)[1].split("\n## ", 1)[0]
     assert tuple(line for block in re.findall(r"```bash\n(.*?)```", start, re.S) for line in block.splitlines()) == QUICK_START
     assert all(p in start for p in PLACEHOLDERS)
@@ -635,7 +643,7 @@ def readme_rm2_problems(readme):
     top = readme.split("\n## How it works", 1)[0].replace("the gate, an automatic check before merge,", "")  # the pinned first use
     if JARGON.search(top) or ACRONYMS.search(top):
         bad.append("jargon")
-    if IMAGE.findall(readme) != list(BADGE_URLS):
+    if IMAGE.findall(readme) != [BANNER] + list(BADGE_URLS):
         bad.append("badges")
     demo = readme.split(DEMO_HEAD, 1)[1].split("\n## ", 1)[0] if DEMO_HEAD in readme else ""
     block = re.search(r"([^\n]*)\n\n```text\n(.*?)```", demo, re.S)
@@ -652,7 +660,7 @@ def test_the_readme_reads_in_plain_words_with_a_demo_and_three_badges(capsys):  
     assert readme_rm2_problems(readme) == []
     assert "> *The agent holds the keyboard. You keep the pen.*" in readme and "## Who does what" in readme and "preview, ✅ your yes" in readme and "story ─▶ questions ─▶ plan" in readme  # RM3: the flair
     first = readme.split(DEMO_HEAD, 1)[0].splitlines()  # the first screen: hook, intro, badges, pitch, install, one "not in 0.1" line
-    assert first[2] == PITCH and first[4] == INTRO and [ln for ln in first if ln.startswith("Not in 0.1:")] and "```bash" in first
+    assert PITCH in first and INTRO in first and first.index(PITCH) < first.index(INTRO) and [ln for ln in first if ln.startswith("Not in 0.1:")] and "```bash" in first
     pitch = " ".join(first[first.index(next(ln for ln in first if ln.startswith("`skj` takes"))):][:3])
     assert len(re.findall(r"[.;] |\.$", pitch)) >= 3 and "said yes" in pitch and "exact change" in pitch
     mutants = {  # each mutant must break exactly the rule named
@@ -699,7 +707,7 @@ GATE_FIRST = "the gate, an automatic check before merge,"  # "gate" explained at
 GATE_MIXED = re.compile(r"\bhuman gates?\b|(?<!approval )\bgates\b|\beach gate\b", re.I)
 QUICK_LINKS = ("[Quick start](#quick-start) · [Slash commands](#spec-kit-slash-commands) · [Workflow](#the-jira-lifecycle-workflow) · "
                "[Status](#status)")
-README_MAX_LINES = 292  # the family guide's "<= ~260", plus the M1b link and the rules row (Fix-Docs2), plus 14 lines of RM3 flair and 12 of RM3b (the story strip, a tip)
+README_MAX_LINES = 298  # the family guide's "<= ~260", plus the M1b link and the rules row (Fix-Docs2), 14 lines of RM3 flair, 12 of RM3b (the story strip, a tip), 6 of RM5 (banner, sibling link, one honest line)
 # Only the public Azure DevOps kit may be named; an unreleased sibling is never named, linked or teased (M1 brief ruling 2).
 SIBLING_WORDS = ("ghp", "(?<!#)spec-kit-(?!jira\\b|ado\\b)", "GitHub Projects kit", "coming soon")  # (?<!#): an in-page anchor
 SIBLING = re.compile("|".join(r"\b%s" % w for w in SIBLING_WORDS), re.I)
@@ -750,9 +758,9 @@ def readme_m1_problems(readme, gates):
     anchors = {_slug(h) for h in re.findall(r"^#+ (.*)$", readme, re.M)}
     bad += ["anchor " + a for a in re.findall(r"\]\(#([^)]+)\)", readme) if a not in anchors]
     family = readme.split("## Also for other trackers", 1)[-1].split("\n## ", 1)[0]
-    if [ln for ln in family.splitlines() if ln.startswith("- ")] != [FAMILY_ADO_LINE]:
+    if [ln for ln in family.splitlines() if ln.startswith("- ")] != [FAMILY_ADO_LINE, FAMILY_GHP_LINE]:
         bad.append("family")
-    if SIBLING.search(readme.replace(ADO_URL, "")):
+    if SIBLING.search(readme.replace(FAMILY_GHP_LINE, "").replace(ADO_URL, "")):
         bad.append("sibling")
     rest = flat
     for ok in BANNED_OK:
@@ -766,7 +774,7 @@ def test_the_readme_says_only_what_the_code_does():  # Fix-M1 (FM1-AC1..AC4)
     gates = len(re.findall(r"^\s*type: gate\s*$", _read("workflows/jira-lifecycle/workflow.yml"), re.M))
     assert gates == 12 and readme_m1_problems(readme, gates) == []
     for rel, text in _public().items():  # no unreleased sibling in any public doc
-        assert not SIBLING.search(text.replace(ADO_URL, "")), rel
+        assert not SIBLING.search(text.replace(FAMILY_GHP_LINE, "").replace(ADO_URL, "")), rel
     mutants = {  # each mutant must break exactly the rule named
         "workflow end": readme.replace("from the spec to an open pull request", "through the whole story"),
         "workflow lines": readme.replace(WORKFLOW_RUN + "\n", WORKFLOW_RUN + " --yes\n"),

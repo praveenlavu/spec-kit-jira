@@ -1,8 +1,10 @@
 # skj
 
-**Your AI agent does the Jira grunt work. You press yes.**
+![Spec Kit for Jira: less board upkeep, more time to build](docs/assets/banner.svg)
 
-A community project for Jira Cloud, tested live on a real team-managed project: see [Status](#status).
+**Keep Jira in step with the work. You press yes.**
+
+A Spec Kit add-on for Jira Cloud, with the `skj` command-line tool. Tested on a real team-managed project: see [Status](#status).
 
 [![Tests](https://github.com/praveenlavu/spec-kit-jira/actions/workflows/tests.yml/badge.svg)](https://github.com/praveenlavu/spec-kit-jira/actions/workflows/tests.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE) [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue)](docs/compatibility.md)
 
@@ -12,8 +14,8 @@ A community project for Jira Cloud, tested live on a real team-managed project: 
 ```
 
 `skj` takes a story to a pull request, one small step at a time, alongside [Spec Kit](https://github.com/github/spec-kit), which turns an idea into a spec, a plan and a task list.
-Your AI agent does the building; `skj` puts the subtasks, the pull request and the finished checklist on the story and leaves your time for the questions, the tangents and the yes.
-Nothing changes in Jira until you have seen the exact change and said yes.
+Your agent prepares the subtasks, records the questions and decisions, and assembles the finished checklist. Your team spends less time copying tasks and writing handover notes, and more time deciding what to build.
+Nothing changes in Jira until you have seen the exact change and said yes. A saved preview is checked again before it is applied, so a changed plan needs another look.
 
 > *The agent holds the keyboard. You keep the pen.*
 
@@ -69,6 +71,8 @@ That is the whole rhythm: 👀 preview, ✅ your yes, ✍️ apply.
 - 🧪 **"Done" comes with receipts.** Each "done when" line in your story, which Jira calls an acceptance criterion, is tied to the test that proves it; the gate, an automatic check before merge, names any line without one.
 - 🛑 **When in doubt, it stops.** A changed plan, a missing approval or a setting it cannot trust ends the command with nothing written. A boring stop beats a surprising success.
 - 📌 **The story tells the truth.** Subtasks, the pull request link and the finished checklist go on the story, and the branch name carries the story key. The workflow ends at the open pull request; `skj done` closes the story, after the merge and your yes.
+
+Updates happen when you run the commands or the workflow. This is not a background service that tidies every story.
 
 ## Why this exists, and how it compares
 
@@ -273,6 +277,7 @@ On this site the token can edit or delete comments, including its own, so an app
 Each kit is a separate, independent project.
 
 - **Azure DevOps:** [spec-kit-ado](https://github.com/praveenlavu/spec-kit-ado), for Azure DevOps work items.
+- **GitHub Issues and Projects:** [spec-kit-ghp](https://github.com/praveenlavu/spec-kit-ghp), for user-owned Projects in 0.1.
 
 ## Learn more
 
