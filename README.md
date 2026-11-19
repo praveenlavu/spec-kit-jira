@@ -181,7 +181,7 @@ The add-on gives your AI agent 13 commands. Run the line below inside your Spec 
 specify extension add jira-lifecycle --from https://github.com/praveenlavu/spec-kit-jira/archive/refs/tags/v0.1.0.zip
 ```
 
-The add-on is listed in the [Spec Kit community catalog](https://github.com/github/spec-kit/blob/main/docs/community/extensions.md), so `specify extension search jira-lifecycle` finds it. Spec Kit treats that catalog as a place to look, not a place to install from, so the line above stays. A listing is not an endorsement by Spec Kit or GitHub. The workflow is submitted separately and is not listed yet.
+The add-on is listed in the [Spec Kit community catalog](https://github.com/github/spec-kit/blob/main/docs/community/extensions.md), so `specify extension search jira-lifecycle` finds it. Spec Kit treats that catalog as a place to look, not a place to install from, so the line above stays. A listing is not an endorsement by Spec Kit or GitHub. The workflow is listed in the [Spec Kit community workflows](https://github.com/github/spec-kit/blob/main/docs/community/workflows.md) too.
 
 ### Spec Kit slash commands
 
