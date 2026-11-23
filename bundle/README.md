@@ -1,9 +1,48 @@
-# bundle/
+# Spec Kit lifecycle for Jira: the bundle
 
-`bundle.yml` is the Spec Kit bundle `jira-lifecycle`: installing it adds the `jira-lifecycle` extension and the `jira-lifecycle`
-workflow, each pinned to this release's version. It needs the `skj` CLI and git. Check it offline with
-`specify bundle validate --path bundle --offline`. `specify bundle build --path bundle --output <dir>` zips `bundle.yml` and this
-README as `jira-lifecycle-<version>.zip`, the same name as the extension zip below, so build the two into different directories.
+This bundle is for a developer who takes Jira stories to Done through Spec Kit, with a human sign-off before every Jira or pull request write.
+One install adds both parts of the add-on, each pinned to the same version, 0.1.0.
+
+## What it installs
+
+- The `jira-lifecycle` extension: 13 slash commands and 2 hooks.
+- The `jira-lifecycle` workflow: a story to an open pull request, with a human approval gate at each step that writes.
+
+It also needs two programs on your machine, which a bundle cannot install: `skj` (the command-line tool the commands and the workflow call) and `git`.
+Spec Kit 1.2.1 or newer is required.
+
+## Required catalogs
+
+The two parts are found through two catalogs that this repository keeps. Add them to your Spec Kit project before you install the bundle:
+
+    specify extension catalog add https://raw.githubusercontent.com/praveenlavu/spec-kit-jira/main/catalog/extensions.json --name jira --install-allowed
+    specify workflow catalog add https://raw.githubusercontent.com/praveenlavu/spec-kit-jira/main/catalog/workflows.json --name jira
+
+Without them `specify bundle validate` and `specify bundle install` cannot find the two parts.
+
+## Install
+
+1. Install the `skj` tool:
+
+       pipx install "git+https://github.com/praveenlavu/spec-kit-jira@v0.1.0"
+
+2. Add the two catalogs above, in the project where you use Spec Kit.
+3. Download the bundle file and install it:
+
+       curl -L -o jira-lifecycle-bundle-0.1.0.zip https://github.com/praveenlavu/spec-kit-jira/releases/download/v0.1.0/jira-lifecycle-bundle-0.1.0.zip
+       specify bundle install ./jira-lifecycle-bundle-0.1.0.zip
+
+4. Run one story:
+
+       specify workflow run jira-lifecycle --input issue_number=<n>
+
+Setup, the first run and what each gate asks are in the [main README](https://github.com/praveenlavu/spec-kit-jira/blob/main/README.md).
+
+## For maintainers: building the release files
+
+`bundle.yml` is the manifest. Check it offline with `specify bundle validate --path bundle --offline`. `specify bundle build --path bundle --output <dir>`
+zips `bundle.yml` and this README as `jira-lifecycle-<version>.zip`, the same name as the extension zip below, so build the two into different
+directories. The bundle file is attached to the release under the name `jira-lifecycle-bundle-<version>.zip`.
 
 The release zips are generated, never committed. Build them into a directory outside the repository:
 

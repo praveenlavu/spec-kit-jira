@@ -31,6 +31,7 @@ ARCHIVE = "%s/archive/refs/tags/%s.zip" % TOKENS  # the extension: a repository 
 WORKFLOW_ASSET = "%s/releases/download/%s/jira-lifecycle-workflow.zip" % TOKENS  # built by scripts/build_bundle.py
 CHANGELOG = "%s/blob/%s/CHANGELOG.md" % TOKENS  # T7: the extension entry's `changelog` (`specify extension info` prints it)
 PLACEHOLDERS = TOKENS + (ARCHIVE, WORKFLOW_ASSET, CHANGELOG)  # the values that replaced the release placeholders (the name is the checklist's)
+RAW_CATALOGS = "https://raw.githubusercontent.com/praveenlavu/spec-kit-jira/main/catalog/"  # the two catalogs the bundle README names
 EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+")
 URL_FIELDS = ("repository", "homepage", "documentation", "download_url", "url", "changelog")
 
@@ -102,6 +103,8 @@ def test_every_url_is_the_public_repository_at_the_tag():
         text = p.read_text().replace('"author": "%s"' % EXT["extension"]["author"], "")  # the author is the manifests' (T7)
         text = text.replace('author: "%s"' % EXT["extension"]["author"], "")  # bundle/bundle.yml (T6)
         text = text.replace(REPO_URL, "")  # the one URL allowed: the public repository's
+        if p.name == "README.md":  # the bundle README tells readers to add the two catalogs, served from main
+            text = text.replace(RAW_CATALOGS, "").replace("@" + RELEASE_TAG, "")  # and the pipx pin (`...jira@v0.1.0` is no email)
         for bad in ("http://", "https://", "github.com", "praveenlavu", "www."):
             assert bad not in text, f"{p.name}: {bad}"
         assert not EMAIL.search(text), p.name
@@ -110,6 +113,11 @@ def test_every_url_is_the_public_repository_at_the_tag():
     assert all(ph in both for ph in PLACEHOLDERS)
     readme = (BUNDLE / "README.md").read_text()
     assert all(ph in readme for ph in PLACEHOLDERS) and "jira-lifecycle-workflow.zip" in readme
+    # the bundle form's documentation check: role, parts, required catalogs with their add commands, and the install flow
+    for needed in (RAW_CATALOGS + "extensions.json", RAW_CATALOGS + "workflows.json", "specify extension catalog add",
+                   "specify workflow catalog add", "specify bundle install", "jira-lifecycle-bundle-0.1.0.zip", "developer",
+                   "13 slash commands"):
+        assert needed in readme, needed
 
 
 def test_trademark_rule_jira_is_only_referential():
